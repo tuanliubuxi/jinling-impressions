@@ -14,13 +14,17 @@ function loadModule(path, imports = {}) {
   return module.exports;
 }
 const contract = loadModule("../src/lib/plan-contract.ts");
+const catalog = loadModule("../src/data/places.ts");
 const { generatePlan } = loadModule("../src/lib/deepseek.server.ts", {
-  "@/data/places": { places: [{ id: "a", name: "示例地点", description: "文化" }] },
+  "@/data/places": { places: [{ ...catalog.places[0], id: "a", name: "示例地点" }], contentReviewedAt: "2026-11-15" },
+  "@/lib/planning-context": loadModule("../src/lib/planning-context.ts"),
+  "@/data/city-guide": loadModule("../src/data/city-guide.ts"),
+  "@/lib/model-json": loadModule("../src/lib/model-json.ts"),
   "@/lib/ai-config.server": { getAIConfig: () => ({ endpoint: "https://api.deepseek.com/chat/completions", model: "test-model", apiKey: "test-key-only" }) },
   "@/lib/plan-contract": contract,
 });
 const input = { duration: "一日游", budget: 300, interests: "文化", startPoint: "车站", date: "2026-11-18", walking: "少走路" };
-const draft = { title: "建议", summary: "待核实", days: [{ day: 1, stops: [{ placeId: "a", period: "下午", reason: "文化" }] }], tips: [] };
+const draft = { title: "建议", summary: "待核实", days: [{ day: 1, theme: "文化主题", meal: "同片区用餐", stops: [{ placeId: "a", period: "下午", reason: "文化", activities: ["观察石刻", "沿步道短线游览"], transition: "先选入口" }] }], tips: [], budgetAdvice: ["先为正餐留预算", "门票另核实"] };
 const success = (content, finish_reason = "stop") => Response.json({ choices: [{ finish_reason, message: { content } }] });
 
 test("模型请求约束、固定风险提醒及来源来自服务端资料", async () => {
@@ -31,12 +35,14 @@ test("模型请求约束、固定风险提醒及来源来自服务端资料", as
       assert.equal(body.response_format.type, "json_object");
       assert.equal(body.thinking.type, "disabled");
       assert.equal(body.stream, false);
+      assert.ok(JSON.parse(body.messages[1].content).places[0].highlights.length > 0);
       assert.equal(options.headers.Authorization, "Bearer test-key-only");
       return success(JSON.stringify({ ...draft, warnings: [], sources: [{ id: "fake" }] }));
     };
     const plan = await generatePlan(input, new AbortController().signal);
     assert.equal(plan.warnings.length, 3);
     assert.equal(plan.sources[0].id, "a");
+    assert.equal(plan.sources[0].references[0].url, catalog.places[0].sources[0].url);
   } finally { globalThis.fetch = original; }
 });
 

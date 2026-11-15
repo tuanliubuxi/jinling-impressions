@@ -1,3 +1,5 @@
+import type { SourceRef } from "@/types/place";
+
 export const durations = ["半日游", "一日游", "两日游"] as const;
 export const walkingOptions = ["少走路", "适中", "可以多走"] as const;
 
@@ -13,13 +15,14 @@ export type PlanRequest = {
 export type PlanDraft = {
   title: string;
   summary: string;
-  days: { day: number; stops: { placeId: string; period: string; reason: string }[] }[];
+  days: { day: number; theme: string; meal: string; stops: { placeId: string; period: string; reason: string; activities: string[]; transition: string; optional: boolean }[] }[];
+  budgetAdvice: string[];
   tips: string[];
 };
 
 export type PlanResult = PlanDraft & {
   warnings: string[];
-  sources: { id: string; name: string; description: string }[];
+  sources: { id: string; name: string; description: string; region: string; image: string; durationMinutes: [number, number]; effort: string; arrival: string; ticket: string; reminder: string; references: SourceRef[] }[];
 };
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -60,15 +63,18 @@ export function parsePlanDraft(value: unknown, request: PlanRequest, allowedIds:
   if (value.days.length !== expectedDays) throw invalid();
   const seen = new Set<string>();
   const days = value.days.map((day: unknown, index: number) => {
-    if (!record(day) || day.day !== index + 1 || !Array.isArray(day.stops) || !day.stops.length || day.stops.length > (request.duration === "半日游" ? 2 : 3)) throw invalid();
-    const stops = day.stops.map((stop: unknown) => {
+    if (!record(day) || day.day !== index + 1 || !text(day.theme, 160) || !text(day.meal, 500) || !Array.isArray(day.stops) || !day.stops.length || day.stops.length > (request.duration === "半日游" ? 2 : 4)) throw invalid();
+    const stops = day.stops.map((stop: unknown, stopIndex: number) => {
       if (!record(stop) || typeof stop.placeId !== "string" || !allowedIds.includes(stop.placeId) || seen.has(stop.placeId)) throw invalid();
-      if (typeof stop.period !== "string" || !["上午", "下午", "傍晚"].includes(stop.period) || !text(stop.reason, 400)) throw invalid();
+      if (typeof stop.period !== "string" || !["上午", "下午", "傍晚", "夜间"].includes(stop.period) || !text(stop.reason, 500) || !text(stop.transition, 400)) throw invalid();
+      if (!Array.isArray(stop.activities) || stop.activities.length < 2 || stop.activities.length > 4 || stop.activities.some(activity => !text(activity, 240))) throw invalid();
       seen.add(stop.placeId);
-      return { placeId: stop.placeId, period: stop.period, reason: stop.reason.trim() };
+      // 第四站一律作为有余力再选的备选，不让额外夜游成为必须完成的任务。
+      return { placeId: stop.placeId, period: stop.period, reason: stop.reason.trim(), activities: (stop.activities as string[]).map(activity => activity.trim()), transition: stop.transition.trim(), optional: stopIndex >= 3 };
     });
-    return { day: index + 1, stops };
+    return { day: index + 1, theme: day.theme.trim(), meal: day.meal.trim(), stops };
   });
   if (!Array.isArray(value.tips) || value.tips.length > 5 || value.tips.some(tip => !text(tip, 300))) throw invalid();
-  return { title: value.title.trim(), summary: value.summary.trim(), days, tips: (value.tips as string[]).map(tip => tip.trim()) };
+  if (!Array.isArray(value.budgetAdvice) || value.budgetAdvice.length < 2 || value.budgetAdvice.length > 4 || value.budgetAdvice.some(item => !text(item, 300))) throw invalid();
+  return { title: value.title.trim(), summary: value.summary.trim(), days, tips: (value.tips as string[]).map(tip => tip.trim()), budgetAdvice: (value.budgetAdvice as string[]).map(item => item.trim()) };
 }
