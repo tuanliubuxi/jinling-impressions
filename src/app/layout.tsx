@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="zh-CN"><body><SiteHeader /><main>{children}</main><footer className="container footer">金陵印象 · 山水城林，古今交融<span>开发初版 · AI 能力尚未接入</span></footer></body></html>;
+  return <html lang="zh-CN"><body><SiteHeader /><main>{children}</main><footer className="container footer">金陵印象 · 山水城林，古今交融<span>AI 游览建议 · 出行信息待核实</span></footer></body></html>;
 }
