@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 
 const base = process.env.SMOKE_BASE_URL || "http://127.0.0.1:3101";
 const live = process.argv.includes("--live");
@@ -28,14 +29,41 @@ await check("/api/plan", { ...post(input), body: "{" }, 400);
 await check("/api/plan", { ...post(input), body: " ".repeat(9000) }, 413);
 await check("/api/plan", { method: "POST", body: "text" }, 415);
 await check("/api/plan", { ...post(input), headers: { "Content-Type": "application/json", Origin: "https://unrelated.example" } }, 403);
+await check("/api/plan", post(input), 400); // 没有幂等编号时禁止创建计费任务。
+await check("/api/plan?requestId=invalid", undefined, 400);
+await check(`/api/plan?requestId=${randomUUID()}`, undefined, 404);
+if (!health.aiConfigured) {
+  // 无可用配置时验证真实后台任务生命周期，不发送任何上游请求。
+  const id = randomUUID();
+  const headers = { "Content-Type": "application/json", "Idempotency-Key": id };
+  let response = await fetch(new URL("/api/plan", base), { ...post(input), headers });
+  let body = await response.json();
+  for (let i = 0; response.status === 202 && i < 20; i++) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    response = await fetch(new URL(`/api/plan?requestId=${id}`, base)); body = await response.json();
+  }
+  assert.equal(response.status, 503); assert.equal(body.code, "AI_NOT_CONFIGURED"); assert.equal(body.status, "failed");
+  await check("/api/plan", { ...post(input), headers }, 503);
+  await check("/api/plan", { ...post({ ...input, budget: input.budget + 1 }), headers }, 409);
+  console.log("PASS persisted failed job and input-conflict handling without upstream calls");
+}
 if (live) {
   assert.equal(health.aiConfigured, true, "Configure .env.local and restart server first");
-  const response = await fetch(new URL("/api/plan", base), { ...post(input), signal: AbortSignal.timeout(100000) });
-  const result = await response.json();
+  const id = randomUUID();
+  let response = await fetch(new URL("/api/plan", base), { ...post(input), headers: { "Content-Type": "application/json", "Idempotency-Key": id }, signal: AbortSignal.timeout(100000) });
+  let body = await response.json();
+  const deadline = Date.now() + 100000;
+  while (response.status === 202 && Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    response = await fetch(new URL(`/api/plan?requestId=${id}`, base));
+    body = await response.json();
+  }
   if (!response.ok) {
     // 只打印由本应用生成的错误代码；不输出上游响应或任何环境变量。
-    throw new Error(`Live request failed: HTTP ${response.status}, code=${result.code || "UNKNOWN"}`);
+    throw new Error(`Live request failed: HTTP ${response.status}, code=${body.code || "UNKNOWN"}`);
   }
+  assert.equal(body.status, "completed");
+  const result = body.result;
   assert.equal(result.days.length, twoDays ? 2 : 1);
   assert.ok(result.days[0].stops.length > 0);
   const ids = new Set(placeIds);

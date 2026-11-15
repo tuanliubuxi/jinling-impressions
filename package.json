@@ -8,9 +8,22 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
-    "test:smoke": "node scripts/smoke-plan.mjs"
+    "test:smoke": "node scripts/smoke-plan.mjs",
+    "test:mobile": "node scripts/test-mobile.mjs"
   },
-  "engines": { "node": ">=22.16.0" },
-  "dependencies": { "next": "16.4.6", "react": "19.3.1", "react-dom": "19.3.1" },
-  "devDependencies": { "typescript": "^5", "@types/node": "^22", "@types/react": "^19", "@types/react-dom": "^19" }
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
 }
