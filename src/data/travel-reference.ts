@@ -1,8 +1,10 @@
 // 运营信息与编辑预留分开维护。票价是来源中的成人普通参考价，不是当日成交价。
+import { expandedPlaces } from "@/data/expanded-places";
 export type VisitReference = {
   entry: string; opening: string; booking: string; ticketYuan?: number; ticketScope: string;
   environment: "outdoor" | "mixed" | "indoor"; source: { title: string; url: string }; checkedAt: string;
 };
+
 const zhongshan = { title: "中山陵园管理局 · 购票与预约提示（2025-09-30）", url: "https://zschina.nanjing.gov.cn/fjms/fwzn/mpxx/" };
 const guide = { title: "中山陵园管理局 · 游览指南（2025-06-26）", url: "https://zschina.nanjing.gov.cn/zszx/dtxx/202506/t20250626_5593899.html" };
 const lake = { title: "玄武湖管理处 · 景区官网", url: "https://www.xuanwuhu.net/" };
@@ -22,7 +24,19 @@ export const visitReferences: Record<string, VisitReference> = {
   xinjiekou: { entry: "新街口商圈：先选德基广场、金鹰新街口店、南京新百或中央商场中的1—2家，明确商场而非只到路口。", opening: "各商场、餐厅及活动营业时间分别查询，不假定统一10点开门或夜间营业。", booking: "普通逛店与展览、餐厅预约不同，热门活动以商场官方渠道为准。", ticketYuan: 0, ticketScope: "仅普通逛店；购物、餐饮、展览及娱乐另计", environment: "indoor", source: shops, checkedAt },
 };
 
+for (const place of expandedPlaces) {
+  visitReferences[place.id] = {
+    entry: place.practical.arrival,
+    opening: place.practical.bestTime + "最新开放、临时闭馆与停止入场以官方当期通知为准。",
+    booking: place.practical.ticket,
+    ticketScope: place.admission === "public" ? "公共游览或常设参观范围；消费、临展及其他项目另核，不保证当天可入场" : "收费参观，尚未核实当日票价，不计入已知票价小计；出发前另查",
+    environment: place.environment || "mixed", source: place.sources[0], checkedAt,
+  };
+}
+
 // 下面不是地图计算/人工实测时长，而是本站用于避免排满行程的保守编辑预留。
 export function transferReserve(fromRegion: string, toRegion: string): [number, number] {
-  return fromRegion === toRegion ? [15, 30] : [45, 75];
+  if (fromRegion === toRegion) return [15, 30];
+  if ([fromRegion, toRegion].some(region => region === "牛首山片区" || region === "栖霞山片区")) return [90, 120];
+  return [45, 75];
 }

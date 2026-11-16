@@ -25,9 +25,11 @@ export async function generatePlan(input: PlanRequest, signal: AbortSignal, base
   const requirements = planningRequirements(input, places);
   const policy = policyFor(input, places);
   if (requirements.shoppingOnly && input.duration === "两日游") throw new PlanError("INSUFFICIENT_SHOPPING_DATA", "目前购物资料集中在新街口一个商圈，不能可靠地编成两天不重复的路线。请改为半日/一日，或补充其他兴趣。尚未调用模型。", 422);
+  if (requirements.singleDestination && input.duration === "两日游") throw new PlanError("INSUFFICIENT_DATA", "你只选择了一处目的地，目前不能将同一地点重复编成两天路线。请缩短时长或补充其他地点。尚未调用模型。", 422);
   const capacity = (input.duration === "半日游" || policy.lowWalking ? 2 : 3) * (input.duration === "两日游" ? 2 : 1);
   if (requirements.requiredPlaceIds.length > capacity) throw new PlanError("CONFLICTING_REQUIREMENTS", "点名的主要目的地超过这次时长的建议数量，请减少地点或增加游玩时间。尚未调用模型。", 422);
   const candidates = selectPlanningPlaces(input, places);
+  const singleStop = requirements.shoppingOnly || requirements.singleDestination || candidates.length === 1;
   const context = candidates.map(place => ({ ...planningContext(place), visitReference: visitReferences[place.id] }));
   const system = plannerPrompt;
   let upstream: Response;
@@ -38,7 +40,7 @@ export async function generatePlan(input: PlanRequest, signal: AbortSignal, base
       body: JSON.stringify({
         model: config.model, stream: false, max_tokens: 6000,
         thinking: { type: "disabled" }, temperature: 0.3,
-        tools: [{ type: "function", function: { name: "submit_itinerary", description: "Submit the itinerary", strict: true, parameters: itinerarySchema(input, candidates.map(place => place.id), policy.lowWalking, requirements.shoppingOnly) } }],
+        tools: [{ type: "function", function: { name: "submit_itinerary", description: "Submit the itinerary", strict: true, parameters: itinerarySchema(input, candidates.map(place => place.id), policy.lowWalking, singleStop) } }],
         tool_choice: { type: "function", function: { name: "submit_itinerary" } },
         messages: [{ role: "system", content: system }, { role: "user", content: JSON.stringify({ request: input, requirements, policy: policyFor(input, places), basePlan: base ? { title: base.title, summary: base.summary, days: base.days, budgetAdvice: base.budgetAdvice, tips: base.tips } : undefined, cityBackground: requirements.shoppingOnly ? [] : cityChapters, places: context }) }],
       }),
@@ -67,7 +69,7 @@ export async function generatePlan(input: PlanRequest, signal: AbortSignal, base
     const calls = choice?.message?.tool_calls;
     if (!["stop", "tool_calls"].includes(choice?.finish_reason) || !Array.isArray(calls) || calls.length !== 1 || calls[0].function?.name !== "submit_itinerary" || typeof calls[0].function.arguments !== "string") throw new Error("Incomplete");
     rawArguments = calls[0].function.arguments;
-    const draft = parsePlanDraft(unwrapItinerary(JSON.parse(calls[0].function.arguments), input, policy.lowWalking, requirements.shoppingOnly), input, candidates.map(place => place.id));
+    const draft = parsePlanDraft(unwrapItinerary(JSON.parse(calls[0].function.arguments), input, policy.lowWalking, singleStop), input, candidates.map(place => place.id));
     const selected = new Set(draft.days.flatMap(day => day.stops.map(stop => stop.placeId)));
     assertRequiredStops(requirements.requiredPlaceIds, draft.days.flatMap(day => day.stops.filter(stop => !stop.optional).map(stop => stop.placeId)));
     const quality = assessPlan(draft, input, places);

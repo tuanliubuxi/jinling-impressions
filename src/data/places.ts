@@ -1,6 +1,8 @@
 import type { Place, SourceRef } from "@/types/place";
+import { expandedPlaces } from "@/data/expanded-places";
+import { placeImages } from "@/data/place-images";
 
-export const contentReviewedAt = "2026-11-15";
+export const contentReviewedAt = "2026-11-16";
 export const citySources: SourceRef[] = [
   { title: "南京市政府 · 历史沿革", url: "https://www.nanjing.gov.cn/zzb/njgl/csgk/lsyg/202509/t20250919_5653028.html" },
   { title: "南京文旅 · 南京城墙", url: "https://wlj.nanjing.gov.cn/ztzl/mcq/njmcq/" },
@@ -10,9 +12,9 @@ export const citySources: SourceRef[] = [
 ];
 
 // 历史事实附参考来源；停留时长、玩法与体力等级是本站编辑建议，不是实时运营数据。
-export const places: Place[] = [
+const originalPlaces: Place[] = [
   {
-    id: "mingxiaoling", name: "明孝陵", category: "历史遗迹", region: "钟山片区", image: "/images/mingxiaoling.jpg",
+    id: "mingxiaoling", name: "明孝陵", category: "历史遗迹", region: "钟山片区", image: "",
     description: "沿神道与陵宫读懂明初南京：石兽、古树和建筑共同展开一段帝陵叙事。",
     themes: ["明代", "明朝", "朱元璋", "明史", "古都", "历史", "石刻", "秋景", "摄影"],
     history: ["明孝陵是明朝开国皇帝朱元璋与马皇后的陵寝，始建于1381年，2003年作为明清皇家陵寝扩展项目列入世界遗产。景区不只是一条石像路，还包括陵宫、神道、大金门与四方城。将它们作为整体观察，才能理解帝陵礼制与山林环境。", "相较于把秋叶当作唯一主角，更值得留意的是石刻、道路转折与建筑层次：从神道进入陵宫，观看角度和空间感会不断变化。梅花山、梅花谷等也属于景区体系，游览时应按季节和体力取舍。"],
@@ -22,7 +24,7 @@ export const places: Place[] = [
     foodNote: "正餐安排在进园前或结束后，随身备水，避免为找餐饮来回折返。", nearbyIds: ["wutong", "zhongshanling"], sources: [{ title: "中山陵园管理局 · 明孝陵景区", url: "https://zschina.nanjing.gov.cn/fjms/jqjd/mxljq/" }],
   },
   {
-    id: "citywall", name: "南京明城墙", category: "历史遗迹", region: "玄武湖周边", image: "/images/citywall.jpg",
+    id: "citywall", name: "南京明城墙", category: "历史遗迹", region: "玄武湖周边", image: "",
     description: "从城砖到城门，看明代都城如何依山水构筑，也看古城怎样融入今天的南京。",
     themes: ["明代", "明朝", "明史", "城墙", "历史", "建筑", "古都", "朱元璋"],
     history: ["南京明城墙始筑于1366年。它没有机械地套用方形都城格局，而是结合南京的山水地形布置。今天所说的南京城墙，主要指留存至今的明代都城城墙。", "参观时把城墙看作城市结构的一部分：城门如何联系内外，道路与河湖如何配合防御，现代高楼又如何出现在城墙视野中。选择一段认真观察，比试图把所有城段走完更适合初访者。"],
@@ -32,7 +34,7 @@ export const places: Place[] = [
     foodNote: "根据所选城段在游览后安排正餐，不为一家店反复跨城段移动。", nearbyIds: ["xuanwuhu"], sources: [citySources[1]],
   },
   {
-    id: "zhongshanling", name: "中山陵", category: "历史遗迹", region: "钟山片区", image: "/images/zhongshanling.jpg",
+    id: "zhongshanling", name: "中山陵", category: "历史遗迹", region: "钟山片区", image: "",
     description: "沿中轴拾级而上，在山林与纪念建筑之间理解南京的近代记忆。",
     themes: ["近代", "民国", "孙中山", "纪念建筑", "历史", "建筑", "山林"],
     history: ["中山陵是孙中山先生的陵墓，位于钟山山麓。陵墓于1926年动工，1929年举行奉安大典。建筑依山展开，从墓道、陵门、碑亭到祭堂，中轴线将纪念空间逐步推进。", "它与明孝陵属于不同历史主题：前者指向近代中国与纪念建筑，后者更适合追索明代帝陵制度。初来南京时按兴趣选择主线，不必因为同处钟山就把两个大景区塞进半天。"],
@@ -42,7 +44,7 @@ export const places: Place[] = [
     foodNote: "进园前安排好正餐和饮水，不把用餐压缩成赶路间隙。", nearbyIds: ["wutong", "mingxiaoling"], sources: [{ title: "中山陵园管理局 · 中山陵景区", url: "https://zschina.nanjing.gov.cn/fjms/jqjd/zsljq/" }],
   },
   {
-    id: "wutong", name: "陵园路·梧桐大道", category: "山水风景", region: "钟山片区", image: "/images/wutong.jpg",
+    id: "wutong", name: "陵园路·梧桐大道", category: "山水风景", region: "钟山片区", image: "",
     description: "树冠相接的林荫道路，既是南京的城市意象，也连接着近代陵园建设史。",
     themes: ["梧桐", "摄影", "散步", "林荫", "近代", "民国", "自然"],
     history: ["南京人熟悉的“法国梧桐”，在陵园路上主要是二球悬铃木。陵园路建设与孙中山奉安中山陵的工程有关，林荫景观也因此带有近代城市建设的印记。", "比起必须拍到同款照片，更有意思的是观察道路、树冠和行人的关系。树木把纪念性道路变成有日常温度的城市空间，摄影只是欣赏它的一种方式。"],
@@ -52,7 +54,7 @@ export const places: Place[] = [
     foodNote: "适合作为正餐前后的轻量活动，随身带水即可。", nearbyIds: ["mingxiaoling", "zhongshanling"], sources: [{ title: "中山陵园管理局 · 梧桐大道的历史", url: "https://zschina.nanjing.gov.cn/lyzx/202511/t20251106_5684280.html" }],
   },
   {
-    id: "xuanwuhu", name: "玄武湖", category: "山水风景", region: "玄武湖周边", image: "/images/xuanwuhu.jpg",
+    id: "xuanwuhu", name: "玄武湖", category: "山水风景", region: "玄武湖周边", image: "",
     description: "湖岸、洲岛、古城与天际线在这里相遇，适合给紧凑的城市旅行留白。",
     themes: ["湖泊", "自然", "散步", "休闲", "亲子", "少走路", "山水城林", "玄武湖"],
     history: ["玄武湖是南京城市山水格局中重要的一环。环洲、樱洲、梁洲、翠洲、菱洲这五个洲岛与岸边城墙形成观景层次；它们的现名在1935年确定，名称变迁也是城市公共生活变化的一个切面。", "它的价值不只在“到此一游”。把湖边休息、看水面和城市纳入旅程，能感受到南京作为生活城市的一面。初访无需完整环湖，选一处入口和一段湖岸即可。"],
@@ -62,7 +64,7 @@ export const places: Place[] = [
     foodNote: "正餐可放在湖外城市街区，湖边以补水和休息为主。", nearbyIds: ["citywall"], sources: [{ title: "南京地方志 · 玄武湖五洲改名记", url: "https://dfz.nanjing.gov.cn/gzdt/202610/t20261009_5922087.html" }],
   },
   {
-    id: "fuzimiao", name: "夫子庙", category: "街巷人文", region: "秦淮城南", image: "/images/fuzimiao.jpg",
+    id: "fuzimiao", name: "夫子庙", category: "街巷人文", region: "秦淮城南", image: "",
     description: "从文庙与科举文化出发，在秦淮水岸读南京文脉，而不只逛一条小吃街。",
     themes: ["科举", "儒学", "历史", "文化", "秦淮", "明清", "夫子庙", "小吃"],
     history: ["夫子庙一带将儒学、科举、民俗与水岸街市联系在一起。与江南贡院相关的科举记忆，为这里提供了比商业街更深的阅读线索。", "今天的街区由历史遗存、修复与现代经营共同形成。不要把每栋仿古建筑都当作原貌古建；先分清文庙、贡院相关场馆与公共街巷，再决定把时间花在哪里。"],
@@ -72,7 +74,7 @@ export const places: Place[] = [
     foodNote: "可选鸭血粉丝汤、牛肉锅贴等小吃；看明码标价，按食量选择，不必每样都买。", nearbyIds: ["qinhuai_night", "laomendong"], sources: [citySources[2]],
   },
   {
-    id: "qinhuai_night", name: "秦淮河夜色", category: "山水风景", region: "秦淮城南", image: "/images/qinhuai_twilight.jpg",
+    id: "qinhuai_night", name: "秦淮河夜色", category: "山水风景", region: "秦淮城南", image: "",
     description: "灯光、河房与水波构成夜秦淮；步行看河与乘船，是两种不同的选择。",
     themes: ["夜游", "夜景", "秦淮", "摄影", "河流", "休闲", "灯影"],
     history: ["秦淮河沿岸的河厅河房与街巷共同塑造了老城南的空间性格。水联系着生活，也给文学和城市记忆提供了场景。", "夜游的吸引力在于灯光、水面倒影与街市活动叠在一起。初访可先从公共水岸看夜色，再决定是否乘船；步行和游船不是同一项已包含的体验。"],
@@ -82,7 +84,7 @@ export const places: Place[] = [
     foodNote: "与晚餐结合即可，少量尝试甜品或小吃，注意个人饮食禁忌。", nearbyIds: ["fuzimiao", "laomendong"], sources: [{ title: "南京地方志 · 寻访朱偰笔下的秦淮", url: "https://dfz.nanjing.gov.cn/gzdt/202604/t20260416_5824879.html" }],
   },
   {
-    id: "laomendong", name: "老门东", category: "街巷人文", region: "秦淮城南", image: "/images/laomendong.jpg",
+    id: "laomendong", name: "老门东", category: "街巷人文", region: "秦淮城南", image: "",
     description: "中华门以东的街巷记忆：在传统民居、店铺和当代生活之间慢慢走。",
     themes: ["明清", "街巷", "民俗", "文化", "美食", "小吃", "人文", "老城南"],
     history: ["“门东”与中华门以东的区位有关，这片老城南地区保留着街巷地名和传统生活的记忆。了解它，不妨从箍桶巷、三条营等地名入手，想想街巷与居民生活的关系。", "今天的老门东包含保护、修缮、更新与经营，既有传统建筑风貌，也有当代餐饮和文化消费。它适合步行观察空间细节，不必将所有仿古街景解释为未经变化的历史原貌。"],
@@ -92,7 +94,7 @@ export const places: Place[] = [
     foodNote: "以主食加一两样小吃为思路，盐水鸭、粉丝汤、锅贴或糕点按口味选择，不推荐未经核实的商家。", nearbyIds: ["fuzimiao", "qinhuai_night"], sources: [{ title: "南京地方志 · 老门东的人文轶事", url: "https://dfz.nanjing.gov.cn/gzdt/202412/t20241220_5037424.html" }],
   },
   {
-    id: "bridge", name: "南京长江大桥", category: "城市地标", region: "长江沿岸", image: "/images/bridge.jpg",
+    id: "bridge", name: "南京长江大桥", category: "城市地标", region: "长江沿岸", image: "",
     description: "把视线从城内移向长江，认识公铁两用桥承载的工程史与城市记忆。",
     themes: ["长江", "大桥", "工业", "工程", "现代", "城市记忆", "地标"],
     history: ["南京长江大桥是我国自主设计建造的双层公铁两用桥，1968年实现铁路与公路通车。它既是交通工程，也是南京跨江发展中的重要城市符号。", "看大桥不等于必须走完整座桥。桥梁结构、江面尺度和沿岸景观已提供足够的观察内容；对工程史感兴趣，可以把这一段独立留给江边。"],
@@ -102,7 +104,7 @@ export const places: Place[] = [
     foodNote: "先确认观景点附近实际餐饮条件，别完全依赖临时找餐。", nearbyIds: [], sources: [{ title: "南京公共工程建设中心 · 长江大桥工程简介", url: "https://gjzx.nanjing.gov.cn/xmqk/cjdqwxgz/201612/t20161227_2242532.html" }],
   },
   {
-    id: "xinjiekou", name: "新街口", category: "城市地标", region: "中心城区", image: "/images/xinjiekou.jpg",
+    id: "xinjiekou", name: "新街口", category: "城市地标", region: "中心城区", image: "",
     description: "从古都走入现代商圈，在街道、商场与人群中感受当代南京。",
     themes: ["现代", "商圈", "商场", "购物", "逛街", "买东西", "shopping", "mall", "餐饮", "休闲", "城市生活", "雨天"],
     history: ["新街口是南京重要的商业中心。德基广场、金鹰新街口店、南京新百与中央商场等商业载体集中于这一商圈，适合把逛商场、用餐与室内休息组织成一段行程。", "如果本次主要想购物，就应把新街口作为主线，而非用历史景区替代。不同商场的品牌、活动、营业与楼层安排会变化，先按喜欢的品类选择一两家，再查当日商场导览，不必为了数量全部逛完。"],
@@ -113,5 +115,17 @@ export const places: Place[] = [
   },
 ];
 
+export const places: Place[] = [...originalPlaces, ...expandedPlaces].map(place => ({
+  ...place,
+  ...(place.id === "mingxiaoling" ? {
+    highlights: [{ title: "方城明楼", detail: "看方城台基、门券与明楼的叠置，理解陵宫尽端的建筑体量；明楼与文武方门等是同一景区内部看点。" }, { title: "文武方门与棂星门", detail: "比较门庭在神道与陵宫序列中的位置，先看导览，再按入口和体力决定实际走法。" }, ...place.highlights],
+  } : {}),
+  ...(place.id === "xinjiekou" ? {
+    history: [...place.history, "广场中央的孙中山铜像是这里重要的城市地标。现存铜像于1996年重新制作，因地铁建设迁出后于2010年回到新街口；它与藏经楼的铜像、祭堂中的坐像不同。看铜像与逛商场可放在同一商圈段，不另算一次跨区行程。"],
+    highlights: [{ title: "广场孙中山铜像", detail: "从安全公共位置看铜像与商圈背景，留意纪念地标如何与当代商业城市并置；不进入路口车流拍摄。" }, ...place.highlights],
+    sources: [...place.sources, { title: "南京市档案馆 · 孙中山铜像重塑与回归", url: "https://dag.nanjing.gov.cn/gzdt/202503/t20250321_5101367.html" }],
+  } : {}),
+  image: placeImages[place.id]?.[0]?.src || "/images/place-guide.svg",
+}));
 export function getPlace(id: string) { return places.find(place => place.id === id); }
-export const categories = ["全部", "历史遗迹", "山水风景", "街巷人文", "城市地标"] as const;
+export { categories } from "@/data/place-categories";

@@ -13,7 +13,8 @@ try {
     await page.evaluate(() => { for (const image of document.images) image.loading = "eager"; });
     await page.waitForFunction(() => Array.from(document.images).every(image => image.complete && image.naturalWidth > 0));
     await page.evaluate(() => document.fonts.ready);
-    await page.screenshot({ path: `docs/images/${name}.jpg`, type: "jpeg", quality: 90, fullPage: true, animations: "disabled" });
+    const area = name === "explore" ? await page.locator("#destinations").boundingBox() : null;
+    await page.screenshot({ path: `docs/images/${name}.jpg`, type: "jpeg", quality: 90, fullPage: true, ...(area ? { clip: { x: 0, y: area.y, width: 1440, height: 1600 } } : {}), animations: "disabled" });
     console.log(`Saved docs/images/${name}.jpg`);
   }
   await context.close();

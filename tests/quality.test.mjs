@@ -7,7 +7,9 @@ const { planningRequirements } = loadModule("../src/lib/planning-context.ts");
 const input = { duration: "一日游", budget: 300, interests: "自然风景", startPoint: "南京南站", date: "2026-11-20", walking: "适中" };
 const draft = ids => ({ days: [{ day: 1, stops: ids.map((placeId, i) => ({ placeId, period: ["上午", "下午", "傍晚", "夜间"][i], optional: i >= 3 })) }] });
 test("雨天仅室内、少走路、预算与排除条件在选材前生效", () => {
-  assert.deepEqual(availablePlaces({ ...input, interests: "下雨只在室内活动" }, places).map(p => p.id), ["xinjiekou"]);
+  const indoor = availablePlaces({ ...input, interests: "下雨只在室内活动" }, places).map(p => p.id);
+  assert.ok(indoor.includes("xinjiekou") && indoor.includes("nanjing-museum") && indoor.includes("six-dynasties"));
+  assert.ok(!indoor.includes("presidential-palace") && !indoor.includes("niushoushan"));
   assert.ok(!availablePlaces({ ...input, walking: "少走路" }, places).some(p => p.id === "zhongshanling"));
   assert.ok(!availablePlaces({ ...input, budget: 0 }, places).some(p => p.id === "mingxiaoling"));
   assert.ok(!availablePlaces({ ...input, interests: "不要去明孝陵" }, places).some(p => p.id === "mingxiaoling"));
@@ -15,7 +17,9 @@ test("雨天仅室内、少走路、预算与排除条件在选材前生效", ()
   assert.ok(!availablePlaces({ ...input, interests: "不购物，想看湖景" }, places).some(p => p.id === "xinjiekou"));
 });
 test("未收录、明确冲突与不足以支撑两天的条件在调用前拒绝", () => {
-  for (const patch of [{ interests: "南京博物院" }, { interests: "只在室内，必须去明孝陵" }, { interests: "明孝陵", budget: 10 }, { interests: "室内购物", duration: "两日游" }]) assert.throws(() => preflight({ ...input, ...patch }, places));
+  for (const patch of [{ interests: "汤山" }, { interests: "只在室内，必须去明孝陵" }, { interests: "明孝陵", budget: 10 }, { interests: "只去免费，必须去总统府" }]) assert.throws(() => preflight({ ...input, ...patch }, places));
+  assert.throws(() => preflight({ ...input, interests: "室内购物", duration: "两日游" }, places.filter(place => place.id === "xinjiekou")));
+  for (const interests of ["南京博物院", "总统府", "牛首山", "红山动物园", "栖霞山"]) assert.doesNotThrow(() => preflight({ ...input, interests }, places));
 });
 test("时间顺序、夜景时段、少走路站数和累计门票必须满足", () => {
   assert.throws(() => assessPlan(draft(["qinhuai_night"]), input, places));

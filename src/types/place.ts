@@ -3,7 +3,11 @@ export type SourceRef = { title: string; url: string };
 export type Place = {
   id: string;
   name: string;
-  category: "历史遗迹" | "山水风景" | "街巷人文" | "城市地标";
+  category: "历史遗迹" | "山水风景" | "街巷人文" | "城市地标" | "美食街巷" | "博物场馆";
+  aliases?: string[];
+  environment?: "outdoor" | "mixed" | "indoor";
+  admission?: "public" | "ticketed";
+  remote?: boolean;
   image: string;
   description: string;
   region: string;

@@ -10,7 +10,7 @@ const fixture = {
   title: "手机回归测试行程", summary: "这是模拟响应，不调用模型。",
   days: [{ day: 1, theme: "明代文化", meal: "安排用餐休息", stops: [{ placeId: "mingxiaoling", period: "上午", reason: "兴趣匹配", activities: ["看神道", "看陵宫"], transition: "确认入口", optional: false }] }],
   tips: [], budgetAdvice: ["预留餐费", "核实门票"], warnings: ["测试提示"],
-  sources: [{ id: "mingxiaoling", name: "明孝陵", description: "明代帝陵", region: "钟山", image: "/images/mingxiaoling.jpg", durationMinutes: [120, 180], effort: "适中", arrival: "先选入口", ticket: "查官方公告", reminder: "预留休息", references: [{ title: "官方介绍", url: "https://zschina.nanjing.gov.cn/" }] }],
+  sources: [{ id: "mingxiaoling", name: "明孝陵", description: "明代帝陵", region: "钟山", image: "/images/places/mingxiaoling/8e9068d1868b.webp", durationMinutes: [120, 180], effort: "适中", arrival: "先选入口", ticket: "查官方公告", reminder: "预留休息", references: [{ title: "官方介绍", url: "https://zschina.nanjing.gov.cn/" }] }],
 };
 async function context(options = {}) {
   const ctx = await browser.newContext({ ...devices["Pixel 7"], serviceWorkers: "block", ...options });
@@ -190,7 +190,7 @@ try {
 
   {
     const ctx = await context(); let posts = 0;
-    const shopping = { ...fixture, title: "新街口商场慢逛", days: [{ ...fixture.days[0], theme: "商场购物", stops: [{ ...fixture.days[0].stops[0], placeId: "xinjiekou" }] }], sources: [{ ...fixture.sources[0], id: "xinjiekou", name: "新街口", image: "/images/xinjiekou.jpg" }] };
+    const shopping = { ...fixture, title: "新街口商场慢逛", days: [{ ...fixture.days[0], theme: "商场购物", stops: [{ ...fixture.days[0].stops[0], placeId: "xinjiekou" }] }], sources: [{ ...fixture.sources[0], id: "xinjiekou", name: "新街口", image: "/images/places/xinjiekou/6fb02f2818ee.webp" }] };
     await ctx.route("**/api/plan**", route => {
       posts++;
       const input = route.request().postDataJSON();

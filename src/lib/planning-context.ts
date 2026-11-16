@@ -1,16 +1,8 @@
 import type { Place } from "@/types/place";
 import type { PlanRequest } from "@/lib/plan-contract";
 import { availablePlaces, policyFor, queryFor } from "@/lib/plan-quality";
+import { affirmative, mentionedNames } from "@/lib/place-match";
 
-function affirmative(query: string, phrase: string): boolean {
-  let index = query.indexOf(phrase);
-  while (index >= 0) {
-    const prefix = query.slice(Math.max(0, index - 10), index);
-    if (!(/(不想|不要|不去|不逛|不喜欢|不考虑|不安排|不看|避开|排除)[^，。；,;、]{0,6}$/.test(prefix) || /不$/.test(prefix)) || /不要错过$/.test(prefix)) return true;
-    index = query.indexOf(phrase, index + phrase.length);
-  }
-  return false;
-}
 
 export function planningRequirements(input: PlanRequest, catalog: Place[]) {
   const query = queryFor(input).toLowerCase();
@@ -18,12 +10,14 @@ export function planningRequirements(input: PlanRequest, catalog: Place[]) {
   const excluded = policyFor(input, catalog).excluded;
   const shopping = !excluded.includes("xinjiekou") && wants(["商场", "购物", "逛街", "买东西", "商圈", "shopping", "mall", "德基", "金鹰", "新百", "中央商场"]);
   const ming = wants(["明朝", "明代", "明史", "朱元璋"]);
-  const aliases: Record<string, string[]> = { citywall: ["明城墙", "城墙"], xinjiekou: ["德基", "金鹰", "新百", "中央商场"] };
-  const requiredPlaceIds = catalog.filter(place => !excluded.includes(place.id) && wants([place.name.toLowerCase(), ...(aliases[place.id] || [])])).map(place => place.id);
+  const requiredPlaceIds = catalog.filter(place => !excluded.includes(place.id) && wants(mentionedNames(query, place, catalog).map(name => name.toLowerCase()))).map(place => place.id);
   if (shopping && !excluded.includes("xinjiekou") && catalog.some(place => place.id === "xinjiekou") && !requiredPlaceIds.includes("xinjiekou")) requiredPlaceIds.push("xinjiekou");
-  const otherInterests = wants(["历史", "文化", "明朝", "明代", "明史", "公园", "湖泊", "自然", "夜景", "夜游", "小吃", "街巷", "登山", "爬山"]);
+  const otherInterests = wants(["历史", "文化", "明朝", "明代", "明史", "公园", "湖泊", "自然", "夜景", "夜游", "小吃", "美食", "逛吃", "看展", "博物馆", "亲子", "动物", "街巷", "登山", "爬山"]);
   const shoppingOnly = shopping && !otherInterests && requiredPlaceIds.every(id => id === "xinjiekou");
-  return { shopping, shoppingOnly, ming, requiredPlaceIds };
+  const food = wants(["美食", "逛吃", "小吃"]);
+  const foodOnly = food && !shopping && !wants(["历史", "文化", "明史", "六朝", "近代", "看展", "博物馆", "湖景", "自然", "夜景", "夜游", "亲子"]) && requiredPlaceIds.every(id => catalog.find(place => place.id === id)?.category === "美食街巷");
+  const singleDestination = requiredPlaceIds.length === 1 && !/不只|不止|不仅/.test(query) && /只去|只游览|只安排|不加其他|不叠加|别安排市区/.test(query);
+  return { shopping, shoppingOnly, foodOnly, singleDestination, ming, requiredPlaceIds };
 }
 
 // 先保留明确需求，再补充主题候选，不能把购物地点因资料库排序而挤出去。
@@ -31,15 +25,22 @@ export function selectPlanningPlaces(input: PlanRequest, catalog: Place[]): Plac
   const query = queryFor(input).toLowerCase();
   const requirements = planningRequirements(input, catalog);
   catalog = availablePlaces(input, catalog);
+  if (requirements.singleDestination) return catalog.filter(place => place.id === requirements.requiredPlaceIds[0]);
   if (requirements.shoppingOnly) return catalog.filter(place => place.id === "xinjiekou");
+  if (requirements.foodOnly) return catalog.filter(place => place.category === "美食街巷");
   const ranked = catalog.map((place, index) => {
     let score = place.themes.reduce((sum, theme) => sum + (affirmative(query, theme.toLowerCase()) ? 3 : 0), 0);
     if (requirements.requiredPlaceIds.includes(place.id)) score += 100;
     if (requirements.ming && place.themes.includes("明代")) score += 20;
+    if (/美食|逛吃|小吃/.test(query) && place.category === "美食街巷") score += 18;
+    if (/博物馆|看展|展览/.test(query) && place.category === "博物场馆") score += 18;
+    if (/亲子|孩子|儿童/.test(query) && place.themes.includes("亲子")) score += 12;
+    if (/小众|安静|慢游/.test(query) && place.themes.includes("小众")) score += 10;
+    if (place.remote && !requirements.requiredPlaceIds.includes(place.id) && !/远郊|郊游|登山/.test(query)) score -= 30;
     if (input.walking === "少走路" && place.practical.effort === "较高") score -= 4;
     return { place, score, index };
   });
-  return ranked.sort((a, b) => b.score - a.score || a.index - b.index).slice(0, 8).map(item => item.place);
+  return ranked.sort((a, b) => b.score - a.score || a.index - b.index).slice(0, Math.max(12, requirements.requiredPlaceIds.length)).map(item => item.place);
 }
 
 export function assertRequiredStops(requiredIds: string[], selectedIds: string[]) {
@@ -55,5 +56,6 @@ export function planningContext(place: Place) {
     bestTime: place.practical.bestTime, arrival: place.practical.arrival,
     ticketNote: place.practical.ticket, reminder: place.practical.reminder,
     foodNote: place.foodNote, nearbyIds: place.nearbyIds,
+    environment: place.environment, admission: place.admission, remote: place.remote || false,
   };
 }

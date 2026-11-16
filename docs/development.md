@@ -35,6 +35,8 @@ npm.cmd start -- --hostname 0.0.0.0 --port 3103
 
 ## 真实模型评估
 
+图库与筛选可在本地验证服务上运行 `npm run test:explore`，默认地址 `http://127.0.0.1:3110`，可用 `SMOKE_BASE_URL` 覆盖。检查桌面与手机筛选、别名搜索、轮播、放大、键盘关闭和全部详情／图片，拦截模型入口，不产生模型调用。
+
 ```bash
 npm run test:eval
 # 显式开启计费请求
