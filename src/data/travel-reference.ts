@@ -31,6 +31,7 @@ for (const place of expandedPlaces) {
     booking: place.practical.ticket,
     ticketScope: place.admission === "public" ? "公共游览或常设参观范围；消费、临展及其他项目另核，不保证当天可入场" : "收费参观，尚未核实当日票价，不计入已知票价小计；出发前另查",
     environment: place.environment || "mixed", source: place.sources[0], checkedAt,
+    ...(place.id === "nanjing-memorial" ? { ticketYuan: 0, source: place.sources[1], ticketScope: "官方展馆免费参观，须实名分馆预约；不含交通、寄存及其他服务费用" } : {}),
   };
 }
 

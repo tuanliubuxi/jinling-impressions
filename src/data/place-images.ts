@@ -653,66 +653,6 @@ export const placeImages: Record<string, PlaceImage[]> = {
       "changes": "缩放并转为 WebP"
     }
   ],
-  "mingwalang": [],
-  "hongmiao": [],
-  "nanhu": [
-    {
-      "src": "/images/places/nanhu/a402f89ace07.webp",
-      "width": 1280,
-      "height": 960,
-      "alt": "南湖东路更新前的街区影像，现状已变化",
-      "caption": "南湖东路更新前的街区影像，现状已变化",
-      "author": "东京村子",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E5%8D%97%E4%BA%AC%E5%8D%97%E6%B9%96%E4%B8%9C%E8%B7%AF%E8%B7%AF%E5%8F%A3_-_panoramio.jpg",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "takenAt": "2010-12-17",
-      "reviewedAt": "2026-11-16",
-      "changes": "缩放并转为 WebP"
-    },
-    {
-      "src": "/images/places/nanhu/eb7c634e472c.webp",
-      "width": 1280,
-      "height": 960,
-      "alt": "南湖东路与文体路交叉口：更新前记录",
-      "caption": "南湖东路与文体路交叉口：更新前记录",
-      "author": "东京村子",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E5%8D%97%E4%BA%AC%E5%8D%97%E6%B9%96%E4%B8%9C%E8%B7%AF%E4%B8%8E%E6%96%87%E4%BD%93%E8%B7%AF%E4%BA%A4%E5%8F%89%E5%8F%A3_-_panoramio.jpg",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "takenAt": "2010-12-17",
-      "reviewedAt": "2026-11-16",
-      "changes": "缩放并转为 WebP"
-    },
-    {
-      "src": "/images/places/nanhu/e247392c4873.webp",
-      "width": 1280,
-      "height": 960,
-      "alt": "南湖一中旧貌：光阴里更新前的校园外观",
-      "caption": "南湖一中旧貌：光阴里更新前的校园外观",
-      "author": "东京村子",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E5%8D%97%E4%BA%AC%E5%8D%97%E6%B9%96%E4%B8%9C%E8%B7%AF%E5%8D%97%E6%B9%96%E4%B8%80%E4%B8%AD_-_panoramio.jpg",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "takenAt": "2010-12-17",
-      "reviewedAt": "2026-11-16",
-      "changes": "缩放并转为 WebP"
-    },
-    {
-      "src": "/images/places/nanhu/56703df0d31e.webp",
-      "width": 1280,
-      "height": 960,
-      "alt": "文体路街景的历史记录，不代表当前店铺与街容",
-      "caption": "文体路街景的历史记录，不代表当前店铺与街容",
-      "author": "东京村子",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E5%8D%97%E4%BA%AC%E6%96%87%E4%BD%93%E8%B7%AF_-_panoramio.jpg",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "takenAt": "2011-01-14",
-      "reviewedAt": "2026-11-16",
-      "changes": "缩放并转为 WebP"
-    }
-  ],
   "xinanli": [
     {
       "src": "/images/places/xinanli/054322d0c1cd.webp",
@@ -1293,7 +1233,6 @@ export const placeImages: Record<string, PlaceImage[]> = {
       "changes": "缩放并转为 WebP"
     }
   ],
-  "sangi-lane": [],
   "chaotian-palace": [
     {
       "src": "/images/places/chaotian-palace/bf83748c214c.webp",
@@ -1742,6 +1681,64 @@ export const placeImages: Record<string, PlaceImage[]> = {
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
       "takenAt": "2011-11-26",
+      "reviewedAt": "2026-11-16",
+      "changes": "缩放并转为 WebP"
+    }
+  ],
+  "nanjing-memorial": [
+    {
+      "src": "/images/places/nanjing-memorial/d5770754eb4c.webp",
+      "width": 1600,
+      "height": 1200,
+      "alt": "江东门馆区的纪念馆建筑外观",
+      "caption": "江东门馆区的纪念馆建筑外观",
+      "author": "x li",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Entrance_of_Nanjing_massacre_memorial.jpg",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "takenAt": "2010-11-04",
+      "reviewedAt": "2026-11-16",
+      "changes": "缩放并转为 WebP"
+    },
+    {
+      "src": "/images/places/nanjing-memorial/0d081a1f837c.webp",
+      "width": 1280,
+      "height": 1927,
+      "alt": "纪念空间中的长明火：悼念与铭记",
+      "caption": "纪念空间中的长明火：悼念与铭记",
+      "author": "Gill Penney",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Eternal_flame,_Nanjing_massacre_memorial.jpg",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "takenAt": "2010-09-13",
+      "reviewedAt": "2026-11-16",
+      "changes": "缩放并转为 WebP"
+    },
+    {
+      "src": "/images/places/nanjing-memorial/5b881841ab97.webp",
+      "width": 1280,
+      "height": 853,
+      "alt": "馆区纪念性建筑与空间",
+      "caption": "馆区纪念性建筑与空间",
+      "author": "Samudes",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:A_mountain_split_in_half.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "takenAt": "2026-07-25",
+      "reviewedAt": "2026-11-16",
+      "changes": "缩放并转为 WebP"
+    },
+    {
+      "src": "/images/places/nanjing-memorial/e0c070776210.webp",
+      "width": 1280,
+      "height": 853,
+      "alt": "纪念空间中的遇难者人数铭记",
+      "caption": "纪念空间中的遇难者人数铭记",
+      "author": "Samudes",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:300000_victims.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "takenAt": "2026-07-25",
       "reviewedAt": "2026-11-16",
       "changes": "缩放并转为 WebP"
     }

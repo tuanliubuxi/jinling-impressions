@@ -8,7 +8,7 @@
 | `src/data/city-guide.ts` | 六朝、明代、近代与城市生活的文化阅读章节。 |
 | `src/data/travel-reference.ts` | 入口、开放范围、预约渠道、参考费用与核对日期。 |
 
-资料覆盖 34 处目的地，包含经典观光、美食街巷、博物场馆、园林慢游、亲子自然与远郊山林。新增资料维护于 `expanded-places.ts`，由 `places.ts` 统一导出；图片台账为 `place-images.ts`，年代及参考图说明维护于 `image-notes.ts`。
+资料覆盖 31 处目的地，包含经典观光、美食街巷、博物场馆、园林慢游、亲子自然与远郊山林。新增资料维护于 `expanded-places.ts`，由 `places.ts` 统一导出；图片台账为 `place-images.ts`，年代及参考图说明维护于 `image-notes.ts`。
 
 ## 来源要求
 

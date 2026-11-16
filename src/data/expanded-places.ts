@@ -1,8 +1,8 @@
 import type { Place } from "@/types/place";
 
-// 历史与空间依所列资料整理；游览时长、顺序和餐休为编辑建议。
+// 停留与玩法为编辑建议，历史与运营信息见各条来源。
 export const expandedPlaces: Place[] = [
-  {
+{
     id: "kexiang", name: "科巷", category: "美食街巷", region: "大行宫长江路", image: "", aliases: ["科巷新市集", "科巷菜场"], environment: "mixed", admission: "public",
     description: "从菜场走进小吃街，在锅贴、藕饼与日常采买之间，遇见南京的市井胃口。",
     themes: ["美食", "逛吃", "小吃", "菜场", "市集", "市井", "南京生活", "低预算"],
@@ -12,37 +12,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [45, 90], effort: "轻松", bestTime: "与午餐或晚餐结合，菜场和餐饮营业并不一致。", arrival: "定位科巷具体街口或新市集，公共街巷与商户入口分开确认。", ticket: "公共街巷漫步与餐饮消费分开；不是统一购票美食项目。", reminder: "先看价格与食材，饮食禁忌直接向店家确认，不能保证每家均有座位。" },
     foodNote: "把正餐和尝鲜分开预算；选择主食加一两样小吃，少量分食，不将未经核实的店铺列为必吃。", nearbyIds: ["presidential-palace", "six-dynasties"], sources: [{ title: "南京商务局 · 科巷新市集", url: "https://swj.nanjing.gov.cn/bmdt/202508/t20250825_5634988.html" }],
   },
-  {
-    id: "mingwalang", name: "明瓦廊", category: "美食街巷", region: "中心城区", image: "", environment: "mixed", admission: "public",
-    description: "在新街口的商业楼宇旁转入小街，用一顿街巷小吃补上南京的生活感。",
-    themes: ["美食", "小吃", "逛吃", "街巷", "市井", "低预算", "餐饮"],
-    history: ["明瓦廊的街名与明代制作、经营明瓦的手艺有关。明瓦是旧时用于窗户或天棚的透光薄片，原料和制法曾有变化；一个今天以美食闻名的街名，也保存着南京手工业的线索。", "街巷靠近新街口，梅氏家族与这里的历史也有联系。今天的街区已经更新，旧时府邸与商铺并非完整留存，适合从街名故事回到当下餐饮生活，不将每栋沿街建筑当作原存古建。"],
-    highlights: [{ title: "商圈旁的街巷", detail: "对比商场外立面与小街尺度，感受不同步行空间。" }, { title: "按胃口选一餐", detail: "先看实际菜单，再决定面食、锅贴或其他小吃，不必每样都买。" }, { title: "轻量用餐段", detail: "将它放在新街口购物前后，比安排一次远距离找店更省体力。" }],
-    walk: ["先确认街巷入口与回商圈的方向。", "看一圈菜单，选一家解决主食，再少量尝鲜。", "坐下休息后返回主逛区域，不继续堆叠美食街。"],
-    practical: { durationMinutes: [40, 75], effort: "轻松", bestTime: "午晚餐时段按商户营业选择。", arrival: "定位明瓦廊具体街口，商圈内部仍有步行。", ticket: "公共街巷与餐饮消费分别计算。", reminder: "街道可能拥挤；比较菜单和座位条件，不保证排队时长。" },
-    foodNote: "购物预算与这一餐分开，主食优先，留意餐饮明码标价。", nearbyIds: ["xinjiekou", "xinanli"], sources: [{ title: "南京地方志 · 走进小巷明瓦廊", url: "https://dfz.nanjing.gov.cn/gzdt/202607/t20260708_5873059.html" }],
-  },
-  {
-    id: "hongmiao", name: "红庙", category: "美食街巷", region: "大行宫长江路", image: "", aliases: ["红庙美食街"], environment: "mixed", admission: "public",
-    description: "穿过沿街小店，用南京日常的一餐认识老城生活，少一点赶场，多一点随口味选择。",
-    themes: ["美食", "小吃", "逛吃", "市井", "街巷", "餐饮", "低预算"],
-    history: ["红庙是南京城市生活中的美食街巷，餐饮与周边居民、工作人群的日常需求连在一起。了解这类街区，可以从一份早餐或一顿正餐开始，不必寻找宏大的景区入口。", "美食街的经营会随时间变化，适合保留选择余地。本页介绍街区体验，不以旧报道中的商户名单承诺当日仍在营业，也不把一次活动视作每天都有的节目。"],
-    highlights: [{ title: "街边用餐", detail: "根据当天营业挑一家有座位的店，用主食和一两样小吃组成一餐。" }, { title: "日常街景", detail: "观察招牌、沿街空间与人流，拍摄时尊重店铺与用餐者。" }, { title: "不赶场的休息", detail: "与长江路文化游览结合时，把这里作为餐休选择，而非新增大景区。" }],
-    walk: ["确认红庙街巷的集合位置。", "从菜单与座位条件选择一餐，不追逐未经核实的排名。", "用餐后走一小段公共街道，留足下一站转场。"],
-    practical: { durationMinutes: [40, 75], effort: "轻松", bestTime: "按计划用餐的时段与商户营业安排。", arrival: "确认南京红庙具体店铺或街口，不与其他城市同名地点混淆。", ticket: "公共街巷与消费分开，无统一餐饮套餐。", reminder: "过敏与特殊饮食直接向商户确认；不挡居民与店铺通道。" },
-    foodNote: "先解决一餐，再按食量尝鲜；不为凑清单连续购买。", nearbyIds: ["presidential-palace", "six-dynasties", "kexiang"], sources: [{ title: "南京市政府 · 红庙美食街", url: "https://www.nanjing.gov.cn/zzb/ywdt/gqdt_72662/202401/t20240119_4149756.html" }],
-  },
-  {
-    id: "nanhu", name: "南湖记忆", category: "美食街巷", region: "南湖莫愁湖", image: "", aliases: ["南湖记忆街区"], environment: "mixed", admission: "public",
-    description: "把镜头转向社区街区，在日常餐饮与更新后的公共空间里，看南京生活继续发生。",
-    themes: ["美食", "逛吃", "社区", "市井", "街区更新", "城市生活", "小众", "慢游"],
-    history: ["南湖记忆以生活街区为底色，社区餐饮与公共空间更新构成了它的主要体验。它适合想看日常南京的人，与纪念建筑或山林景区提供的感受不同。", "街区更新不是把生活移出展柜，而是让居住、通行与商业继续共处。游览时应把居民日常放在前面；节庆美食活动的场景不能被当成每天固定提供的内容。"],
-    highlights: [{ title: "社区里的烟火", detail: "看沿街餐饮如何服务日常生活，选择一餐慢慢吃。" }, { title: "街区更新细节", detail: "观察店招、街角和公共休息空间，比较新旧元素的关系。" }, { title: "轻松的小段漫步", detail: "只选一小片街道，不把整个南湖片区当作一个步行点。" }],
-    walk: ["以南湖记忆具体街口为起点。", "沿公共空间步行，选择一处实际开放的店坐下。", "有余力再安排莫愁湖等独立目的地，重新确认距离与入口。"],
-    practical: { durationMinutes: [60, 100], effort: "轻松", bestTime: "日间观察街区，用餐按店铺营业选择。", arrival: "街区名称不代表单一入口，约定具体集合位置。", ticket: "公共街区与餐饮、活动消费分开。", reminder: "不要把节庆市集当作常设项目，拍摄避开居民私人空间。" },
-    foodNote: "以社区餐饮解决正餐，按实际菜单与食量取舍，不保证活动摊位常设。", nearbyIds: ["mochouhu"], sources: [{ title: "南京市政府 · 街区更新", url: "https://www.nanjing.gov.cn/njxx/202509/t20250928_5658289.html" }],
-  },
-  {
+{
     id: "xinanli", name: "熙南里", category: "街巷人文", region: "秦淮城南", image: "", aliases: ["甘熙宅第", "甘熙故居"], environment: "mixed", admission: "public",
     description: "沿着甘熙宅第周边街巷，读传统民居的尺度，也留一段吃饭、休息与夜间散步。",
     themes: ["非遗", "民俗", "建筑", "街巷", "美食", "夜游", "慢游", "文化"],
@@ -50,9 +20,9 @@ export const expandedPlaces: Place[] = [
     highlights: [{ title: "宅院外的街巷", detail: "观察门头、檐口和街巷转折，不把未开放院落当作可进入空间。" }, { title: "民俗与非遗线索", detail: "有展馆目标时先确认开放，按一个主题深入，而不是承诺随到随看演出。" }, { title: "文化与餐休", detail: "把街区用餐、休息放在一次游览中，夜间活动以公告为准。" }],
     walk: ["从明确的公共街口进入，先辨认场馆和街区。", "慢走一段街巷，看建筑外观和公共展示。", "若入馆先查开放与购票，再安排同片区用餐。"],
     practical: { durationMinutes: [60, 100], effort: "轻松", bestTime: "日间看建筑，傍晚可结合用餐。", arrival: "明确到街区还是甘熙宅第入口，不把两者当作统一票区。", ticket: "公共街区不含收费场馆、演出和消费，入馆另核。", reminder: "不保证每日有非遗演出，私人院落与经营空间按现场规定进入。" },
-    foodNote: "街区选一餐与休息，不为多买几样小吃挤掉参观时间。", nearbyIds: ["chaotian-palace", "mingwalang", "fuzimiao"], sources: [{ title: "南京商务局 · 熙南里", url: "https://swj.nanjing.gov.cn/bmdt/202501/t20250108_5050886.html" }, { title: "南京地方志 · 甘熙故居", url: "https://dfz.nanjing.gov.cn/gzdt/202411/t20241114_5009695.html" }],
+    foodNote: "街区选一餐与休息，不为多买几样小吃挤掉参观时间。", nearbyIds: ["chaotian-palace", "fuzimiao"], sources: [{ title: "南京商务局 · 熙南里", url: "https://swj.nanjing.gov.cn/bmdt/202501/t20250108_5050886.html" }, { title: "南京地方志 · 甘熙故居", url: "https://dfz.nanjing.gov.cn/gzdt/202411/t20241114_5009695.html" }],
   },
-  {
+{
     id: "nanjing-museum", name: "南京博物院", category: "博物场馆", region: "中山东路", image: "", aliases: ["南博"], environment: "indoor", admission: "public",
     description: "从历史陈列到建筑细节，挑一两个感兴趣的主题，在展厅里建立对江苏与南京的认识。",
     themes: ["博物馆", "看展", "展览", "历史", "文化", "室内", "雨天", "亲子", "六朝", "文物"],
@@ -62,7 +32,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [120, 240], effort: "适中", bestTime: "预约成功的开放日；有展览目标先查当期展讯。", arrival: "定位中山东路南京博物院指定入馆口，院区到展厅仍需步行。", ticket: "常设参观与预约依官网办理，特展及其他项目另核，不保证预约余量。", reminder: "例行闭馆、节假日调整和停止入场以当期公告为准；室内看展也需要步行。" },
     foodNote: "看展前后在实际开放的餐饮空间解决一餐，不在展厅内饮食；保留休息与补水。", nearbyIds: ["presidential-palace", "six-dynasties"], sources: [{ title: "南京博物院 · 参观服务", url: "https://www.njmuseum.org.cn/zh/visitIndex" }],
   },
-  {
+{
     id: "presidential-palace", name: "总统府", category: "历史遗迹", region: "大行宫长江路", image: "", aliases: ["南京总统府"], environment: "mixed", admission: "ticketed",
     description: "在门楼、院落、办公建筑与花园之间，读近代南京的政治历史与空间变迁。",
     themes: ["近代", "民国", "历史", "建筑", "园林", "文化", "孙中山"],
@@ -70,9 +40,9 @@ export const expandedPlaces: Place[] = [
     highlights: [{ title: "门楼与中轴", detail: "观察门楼、院落和办公建筑的空间递进，结合现场展板理解功能变化。" }, { title: "西花园", detail: "在园林里留意水面、廊道与建筑关系，不只匆匆穿行。" }, { title: "展陈里的近代线索", detail: "按当天开放选一个主题细读，避免把不同历史时期混成单一故事。" }],
     walk: ["先核实预约购票与开放，进场看区域导览。", "选择中轴与一处园林或展区，不必走遍全部区域。", "结束后到长江路周边安排正餐或休息。"],
     practical: { durationMinutes: [120, 180], effort: "适中", bestTime: "白天开放时段，雨天准备区域间户外步行。", arrival: "长江路总统府入口，按官方检票导向进入。", ticket: "收费参观与优惠预约按官网当期公告，未核算当日票价。", reminder: "院落与园林露天，不能作为只接受室内的替代方案。" },
-    foodNote: "与科巷或长江路周边一餐结合，餐休和场馆参观分开安排。", nearbyIds: ["six-dynasties", "kexiang", "hongmiao"], sources: [{ title: "总统府 · 景区概况", url: "https://www.njztf.cn/jqgk/detail/297.html" }],
+    foodNote: "与科巷或长江路周边一餐结合，餐休和场馆参观分开安排。", nearbyIds: ["six-dynasties", "kexiang", ], sources: [{ title: "总统府 · 景区概况", url: "https://www.njztf.cn/jqgk/detail/297.html" }],
   },
-  {
+{
     id: "six-dynasties", name: "六朝博物馆", category: "博物场馆", region: "大行宫长江路", image: "", aliases: ["六朝馆"], environment: "indoor", admission: "ticketed",
     description: "把六朝从朝代名称变成可观察的城市与生活，在遗址、器物与展陈中读建康。",
     themes: ["六朝", "建康", "历史", "文化", "文物", "博物馆", "看展", "室内", "雨天", "小众"],
@@ -80,9 +50,9 @@ export const expandedPlaces: Place[] = [
     highlights: [{ title: "遗址与城市", detail: "留意遗存展示与现代空间的关系，先理解地下历史如何被呈现。" }, { title: "器物里的生活", detail: "从材料、器形与说明寻找生活线索，不只找知名展品拍照。" }, { title: "展陈空间", detail: "观察展厅的光、竹与留白等空间处理，拍摄遵守馆方规定。" }],
     walk: ["先核实当日开放与票务，入馆看展览布局。", "围绕一个主题看遗址与器物，留时间读说明。", "出馆后在长江路片区用餐或休息，不连续堆叠多个大型场馆。"],
     practical: { durationMinutes: [90, 150], effort: "轻松", bestTime: "开放日白天，室内看展适合作为雨天备选。", arrival: "定位六朝博物馆入口，不以整个长江路作为到达点。", ticket: "场馆票务、优惠、预约及临展安排查官方渠道。", reminder: "最新展品与展区可能调整，摄影规则以现场为准。" },
-    foodNote: "参观前后在科巷或长江路周边用餐，避免把饮食带入展厅。", nearbyIds: ["presidential-palace", "kexiang", "hongmiao"], sources: [{ title: "南京文旅 · 六朝博物馆", url: "https://wlj.nanjing.gov.cn/whcg/bwg/lcbwg/" }],
+    foodNote: "参观前后在科巷或长江路周边用餐，避免把饮食带入展厅。", nearbyIds: ["presidential-palace", "kexiang", ], sources: [{ title: "南京文旅 · 六朝博物馆", url: "https://wlj.nanjing.gov.cn/whcg/bwg/lcbwg/" }],
   },
-  {
+{
     id: "imperial-examination", name: "中国科举博物馆", category: "博物场馆", region: "秦淮城南", image: "", aliases: ["南京中国科举博物馆", "江南贡院", "科举博物馆"], environment: "indoor", admission: "ticketed",
     description: "从江南贡院的历史走进考试制度，在建筑、考场记忆与展览里理解读书人的世界。",
     themes: ["科举", "儒学", "明清", "历史", "文化", "看展", "博物馆", "室内", "雨天", "亲子"],
@@ -92,7 +62,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [90, 150], effort: "适中", bestTime: "场馆开放时段，不能从街区夜景推断展馆夜间开放。", arrival: "确认博物馆检票口，贡院相关外景与室内入口并非同一概念。", ticket: "室内展览与历史遗存参观范围、票种、预约分别核实。", reminder: "严格室内的规划只安排展厅，不附加户外街巷和夜游。" },
     foodNote: "参观后在秦淮城南解决正餐，主食配一两样小吃即可。", nearbyIds: ["fuzimiao", "qinhuai_night", "laomendong"], sources: [{ title: "秦淮区政府 · 江南贡院与科举文化", url: "https://www.njqh.gov.cn/dmqh/yzqh/jngylsclg/" }],
   },
-  {
+{
     id: "jiming-temple", name: "鸡鸣寺", category: "历史遗迹", region: "玄武湖周边", image: "", aliases: ["古鸡鸣寺", "鸡鸣寺路"], environment: "outdoor", admission: "ticketed",
     description: "从寺院建筑到周边城市景观，在湖城之间读一段宗教与日常并存的南京。",
     themes: ["寺院", "古寺", "历史", "建筑", "文化", "樱花", "摄影"],
@@ -102,7 +72,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [60, 90], effort: "适中", bestTime: "白天按寺院开放安排，赏花以实际物候为准。", arrival: "鸡鸣寺入口与鸡鸣寺路公共空间分别定位。", ticket: "入寺票务和道路季节管理分开核实。", reminder: "宗教空间内拍摄先看规定，不承诺所有区域可进入。" },
     foodNote: "在周边实际营业的餐饮空间安排正餐，不把寺院餐饮当作必然开放。", nearbyIds: ["xuanwuhu", "citywall"], sources: [{ title: "南京市政府 · 鸡鸣寺路", url: "https://www.nanjing.gov.cn/zzb/ywdt/bmdt_72661/202403/t20240322_4193206.html" }],
   },
-  {
+{
     id: "yihe-road", name: "颐和路", category: "街巷人文", region: "鼓楼颐和路", image: "", aliases: ["颐和路公馆区"], environment: "outdoor", admission: "public",
     description: "在街角、树影与建筑外立面之间慢走，读近代街区如何留在今天的城市生活里。",
     themes: ["近代", "民国", "建筑", "街巷", "摄影", "小众", "散步", "慢游", "安静"],
@@ -112,7 +82,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [60, 100], effort: "轻松", bestTime: "日间慢走，光影和季节景观随天气变化。", arrival: "约定具体路口，片区不是一个统一检票入口。", ticket: "公共道路漫步不含展馆、餐饮和其他经营项目。", reminder: "私人住宅不开放，不挡门、不拍摄住户私人生活。" },
     foodNote: "在实际对外营业的餐饮空间休息，不把私人建筑当作咖啡馆。", nearbyIds: ["xuanwuhu"], sources: [{ title: "南京市政府 · 颐和路街区", url: "https://www.nanjing.gov.cn/zgnjsjb/jrtt/202503/t20250326_5103755.html" }],
   },
-  {
+{
     id: "xiaoxihu", name: "小西湖", category: "街巷人文", region: "秦淮城南", image: "", aliases: ["小西湖街区"], environment: "outdoor", admission: "public",
     description: "走进南京城南的小西湖街区，在巷道、院墙和更新空间里感受老城继续生活。",
     themes: ["街巷", "城市更新", "人文", "市井", "小众", "慢游", "摄影", "安静"],
@@ -122,7 +92,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [45, 90], effort: "轻松", bestTime: "白天安静慢游，不以深夜探访住宅为玩法。", arrival: "定位南京小西湖街区的明确入口，避免同名地点误导。", ticket: "公共街巷不含展览、店铺与消费项目。", reminder: "尊重居民隐私，不进入未开放院落，雨天留意巷道地面。" },
     foodNote: "正餐放在周边公开营业街区，不将住宅当作接待空间。", nearbyIds: ["laomendong", "fuzimiao", "citywall-museum"], sources: [{ title: "南京地方志 · 小西湖街区", url: "https://dfz.nanjing.gov.cn/gzdt/202412/t20241206_5027452.html" }],
   },
-  {
+{
     id: "yuyuan", name: "愚园", category: "历史遗迹", region: "秦淮城南", image: "", aliases: ["胡家花园", "南京愚园"], environment: "outdoor", admission: "ticketed",
     description: "在门西的园林里看水、石、亭廊怎样彼此借景，给南京之行留一段安静时光。",
     themes: ["园林", "晚清", "历史", "建筑", "山水", "小众", "安静", "慢游", "摄影"],
@@ -130,9 +100,9 @@ export const expandedPlaces: Place[] = [
     highlights: [{ title: "水面借景", detail: "从不同岸边观察倒影与建筑关系，留意视线怎样被引导。" }, { title: "亭廊与转折", detail: "观察廊道如何连接建筑与景观，而不只看单个亭子。" }, { title: "山石细节", detail: "从安全步道看石与植物的组合，不攀爬或进入封闭空间。" }],
     walk: ["先看园内导览与开放范围。", "围绕水面选一条短线，看亭廊和山石。", "按体力休息后结束，不强求遍历所有角落。"],
     practical: { durationMinutes: [60, 100], effort: "轻松", bestTime: "白天看园林空间，雨天注意湿滑。", arrival: "定位愚园正式入口，不将周边纳凉点当作园林入口。", ticket: "园林票务以运营公告为准，附近人防纳凉点免费不等于园林免票。", reminder: "园路和台阶可能不平，少走路应选短线，不作无障碍保证。" },
-    foodNote: "参观前后在门西周边安排正餐，园内按规定补水休息。", nearbyIds: ["sangi-lane", "laomendong"], sources: [{ title: "南京地方志 · 愚园", url: "https://dfz.nanjing.gov.cn/gzdt/202501/t20250106_5048511.html" }],
+    foodNote: "参观前后在门西周边安排正餐，园内按规定补水休息。", nearbyIds: ["laomendong"], sources: [{ title: "南京地方志 · 愚园", url: "https://dfz.nanjing.gov.cn/gzdt/202501/t20250106_5048511.html" }],
   },
-  {
+{
     id: "hongshan-zoo", name: "红山森林动物园", category: "山水风景", region: "城北红山", image: "", aliases: ["红山动物园", "红山"], environment: "outdoor", admission: "ticketed",
     description: "把动物放回栖息环境与保育故事中理解，沿园路慢看、读科普，也给孩子留出休息。",
     themes: ["亲子", "动物", "自然", "保育", "科普", "儿童", "孩子", "森林"],
@@ -142,17 +112,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [180, 300], effort: "较高", bestTime: "白天按开放安排，避开高温和恶劣天气。", arrival: "选择实际开放入口，入口之间与展区之间都有距离和坡度。", ticket: "购票、优惠与预约查动物园官方渠道，未核实当日余票。", reminder: "园区步行与坡道较多，不作为少走路方案；不保证动物出现，不投喂。" },
     foodNote: "带好允许携带的饮水，正餐与休息提前安排，按现场规定用餐。", nearbyIds: ["xuanwuhu"], sources: [{ title: "南京市政府 · 红山自然教育与游览", url: "https://www.nanjing.gov.cn/njxx/202604/t20260402_5817299.html" }],
   },
-  {
-    id: "sangi-lane", name: "三七八巷", category: "美食街巷", region: "秦淮城南", image: "", environment: "mixed", admission: "public",
-    description: "在城南的日常街巷中寻找一餐，比追逐榜单更适合慢慢认识南京的口味。",
-    themes: ["美食", "小吃", "逛吃", "市井", "老城南", "低预算", "小众"],
-    history: ["三七八巷的名字来自门牌编排：原先的干沟在1956年编门牌时，以原拟统一使用的长乐路378号为线索改作巷名。这种从日常管理中形成的地名，也是一种南京生活史。", "这里也是城南手工粽的生活场景。端午前后的包粽、售粽传统在官方报道中有记录，适合从粽叶、糯米和馅料理解节令饮食。店铺和售卖内容仍会变化，不承诺某款口味、价格或全年在售。"],
-    highlights: [{ title: "街巷地名", detail: "从街名与街道尺度了解生活空间，不把普通住宅当作开放古建。" }, { title: "一顿日常饭", detail: "按实际菜单选择主食，再少量尝试小吃。" }, { title: "城南生活节奏", detail: "观察沿街采买和用餐，尊重居民与商户通行。" }],
-    walk: ["明确三七八巷街口与回程方向。", "看菜单后选一家解决一餐，不连续扫遍所有店。", "短线慢走后休息，避免叠加多条美食街。"],
-    practical: { durationMinutes: [40, 75], effort: "轻松", bestTime: "按实际营业安排午晚餐。", arrival: "以具体街口或商户为落点，不把城南所有小巷当作相邻。", ticket: "公共街巷与餐饮消费分开。", reminder: "营业、座位与食材需现场确认，不保证商户常年不变。" },
-    foodNote: "手工粽可按当日在售选择咸甜口味，少量分食；端午场景不等于全年都有，先看价格和保存条件。", nearbyIds: ["yuyuan", "fuzimiao"], sources: [{ title: "南京地方志 · 老街巷与三七八巷", url: "https://dfz.nanjing.gov.cn/gzdt/202406/t20240611_4687513.html" }, { title: "南京市民宗局 · 传统手工粽与节令生活", url: "https://mzzjj.nanjing.gov.cn/sjdt/202306/t20230616_3940137.html" }],
-  },
-  {
+{
     id: "chaotian-palace", name: "朝天宫·南京市博物馆", category: "博物场馆", region: "中心城区", image: "", aliases: ["朝天宫", "南京市博物馆", "市博物馆"], environment: "mixed", admission: "ticketed",
     description: "从古建筑院落走进城市历史，在朝天宫看礼制空间，也读南京留下的文物。",
     themes: ["古建", "历史", "文化", "博物馆", "看展", "明清", "建筑", "小众"],
@@ -162,7 +122,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [90, 150], effort: "适中", bestTime: "开放日白天，院落露天，雨天带好雨具。", arrival: "定位朝天宫南京市博物馆，不要导航到南京博物院。", ticket: "场馆票务与优惠、临展、开放范围查官方公告。", reminder: "室内外混合，建筑台阶不作无障碍保证。" },
     foodNote: "馆外实际营业的城市街区解决正餐，展厅内按规定禁食。", nearbyIds: ["xinjiekou", "xinanli"], sources: [{ title: "南京文旅 · 南京市博物馆", url: "https://wlj.nanjing.gov.cn/whcg/bwg/njsbwg/201807/t20180731_1078652.html" }],
   },
-  {
+{
     id: "citywall-museum", name: "南京城墙博物馆", category: "博物场馆", region: "秦淮城南", image: "", aliases: ["城墙博物馆"], environment: "indoor", admission: "public",
     description: "在中华门附近，从城砖、营造与城市防御认识南京城墙，把城外看墙变成有线索的阅读。",
     themes: ["明代", "明史", "城墙", "博物馆", "看展", "室内", "雨天", "建筑", "亲子"],
@@ -172,7 +132,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [90, 150], effort: "轻松", bestTime: "开放日室内看展，临时安排以公告为准。", arrival: "定位南京城墙博物馆入口，不导航到湖畔城墙。", ticket: "入馆预约与临展规则另查，博物馆参观不包含城墙登城票。", reminder: "屋顶或外部空间开放另核，室内规划只安排展厅。" },
     foodNote: "与老门东周边餐休组合，吃饭时间独立于看展。", nearbyIds: ["laomendong", "xiaoxihu", "baoen-temple"], sources: [{ title: "南京市政府 · 城墙博物馆介绍", url: "https://www.nanjing.gov.cn/zzb/ywdt/njxx/202405/t20240509_4661257.html" }],
   },
-  {
+{
     id: "baoen-temple", name: "大报恩寺遗址博物馆", category: "博物场馆", region: "秦淮城南", image: "", aliases: ["大报恩寺", "大报恩寺遗址公园"], environment: "mixed", admission: "ticketed",
     description: "把遗址作为最大的文物，在碑刻、寺院遗存与现代展示之间辨认不同时代的南京。",
     themes: ["明代", "明史", "遗址", "考古", "历史", "博物馆", "建筑", "文化"],
@@ -182,7 +142,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [120, 180], effort: "适中", bestTime: "白天看遗址，特殊活动按当期公告。", arrival: "定位雨花路大报恩寺遗址博物馆指定入口。", ticket: "门票、临展和体验项目范围分别确认，未核实当日票价。", reminder: "室内外混合，不向严格室内用户安排全园游览。" },
     foodNote: "与城南正餐结合，先安排参观与休息，再决定可选消费。", nearbyIds: ["citywall-museum", "laomendong"], sources: [{ title: "南京市政府 · 大报恩寺遗址博物馆", url: "https://www.nanjing.gov.cn/zzb/ywdt/njxx/202405/t20240509_4661257.html" }],
   },
-  {
+{
     id: "niushoushan", name: "牛首山", category: "山水风景", region: "牛首山片区", image: "", environment: "mixed", admission: "ticketed", remote: true,
     description: "以佛顶宫与佛顶塔为建筑线索，在山地景区中安排一段完整、留有体力余量的文化游览。",
     themes: ["佛顶宫", "佛顶塔", "建筑", "宗教文化", "山林", "摄影", "远郊"],
@@ -192,7 +152,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [180, 300], effort: "较高", bestTime: "白天开放时段，山地天气不佳时谨慎调整。", arrival: "明确景区入口与内部接驳方式，市区到景区另留充足转场。", ticket: "门票、内部交通、优惠与预约以官方当期公告为准。", reminder: "有山地移动，非全程室内；内部摄影与宗教空间规定需另核。" },
     foodNote: "进园前后安排正餐与补水，内部消费按实际营业选择。", nearbyIds: [], sources: [{ title: "牛首山 · 佛顶宫", url: "https://tchinese.niushoushan.net/TheTempleOfTheBuddha.html" }, { title: "牛首山 · 佛顶塔", url: "https://www.niushoushan.net/BuddhaTower.html" }],
   },
-  {
+{
     id: "qixia-mountain", name: "栖霞山", category: "山水风景", region: "栖霞山片区", image: "", aliases: ["栖霞寺"], environment: "outdoor", admission: "ticketed", remote: true,
     description: "在山林、古寺与石刻之间慢慢读摄山，红叶只是季节的一章，历史与地形同样值得看。",
     themes: ["山林", "古寺", "石刻", "历史", "秋景", "红叶", "摄影", "远郊", "登山"],
@@ -202,17 +162,17 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [180, 300], effort: "较高", bestTime: "白天山林游览，红叶以当年实际物候为准。", arrival: "远离市中心，确认景区入口与返程方式，内部仍有坡道。", ticket: "景区、寺院与优惠政策分别按当期公告核实。", reminder: "不安排给少走路用户，不承诺固定叶色或全部节点开放。" },
     foodNote: "提前安排正餐与饮水，不完全依赖临时寻找山中餐饮。", nearbyIds: [], sources: [{ title: "南京地方志 · 古刹摄山", url: "https://dfz.nanjing.gov.cn/gzdt/202409/t20240930_4778265.html" }, { title: "南京市民宗局 · 栖霞寺", url: "https://mzzjj.nanjing.gov.cn/mzzj/njzjgk/njfj/201809/t20180927_1198633.html" }],
   },
-  {
-    id: "mochouhu", name: "莫愁湖", category: "山水风景", region: "南湖莫愁湖", image: "", aliases: ["莫愁湖公园"], environment: "outdoor", admission: "public",
+{
+    id: "mochouhu", name: "莫愁湖", category: "山水风景", region: "莫愁湖片区", image: "", aliases: ["莫愁湖公园"], environment: "outdoor", admission: "public",
     description: "在湖岸、园路与亭阁之间留白，选择一段舒适短线，感受南京公园的日常。",
     themes: ["湖泊", "园林", "散步", "休闲", "亲子", "少走路", "摄影", "慢游"],
     history: ["莫愁湖是南京城市公园与湖景的重要一处。这里的体验可以从水面、园林与市民日常展开，不必用走完整园证明一次游览。", "公园的植物景观会随季节变化，展览与活动也有独立安排。把休息、看水和短段漫步纳入行程，适合给紧凑的城市观光留出喘息。"],
     highlights: [{ title: "湖岸层次", detail: "选择一段公共湖岸，观察水面与建筑、树木的关系。" }, { title: "园路与亭阁", detail: "沿开放步道看小景，遇台阶和湿滑处慢行。" }, { title: "停下来的公园", detail: "安排一次坐下休息，不默认完整环湖。" }],
-    walk: ["选一个明确入口，确认附近湖岸和回程方向。", "走短线看湖与园林，中途坐下休息。", "有余力再在南湖片区解决一餐，不继续叠加远处公园。"],
+    walk: ["选一个明确入口，确认附近湖岸和回程方向。", "走短线看湖与园林，中途坐下休息。", "有余力再在周边城市街区解决一餐，不继续叠加远处公园。"],
     practical: { durationMinutes: [60, 100], effort: "轻松", bestTime: "日间或傍晚按开放范围游览，花期不作保证。", arrival: "选择具体公园入口，不同入口到目标湖岸距离不同。", ticket: "公共游览与活动、展馆、游船等项目分别核实。", reminder: "临水照看儿童，少走路仅指短线，不代表完整环湖。" },
-    foodNote: "在园外城市街区安排正餐，公园内按规定补水和休息。", nearbyIds: ["nanhu"], sources: [{ title: "南京市政府 · 城市公园", url: "https://www.nanjing.gov.cn/zgnjsjb/jrtt/202304/t20230408_3883104.html" }],
+    foodNote: "在园外城市街区安排正餐，公园内按规定补水和休息。", nearbyIds: [], sources: [{ title: "南京市政府 · 城市公园", url: "https://www.nanjing.gov.cn/zgnjsjb/jrtt/202304/t20230408_3883104.html" }],
   },
-  {
+{
     id: "stone-city", name: "石头城", category: "历史遗迹", region: "清凉山石头城", image: "", aliases: ["石头城遗址", "鬼脸城"], environment: "outdoor", admission: "public",
     description: "从石壁、地形与滨水空间追索石头城，把六朝城市记忆与眼前遗存分层阅读。",
     themes: ["六朝", "历史", "遗址", "石壁", "地形", "小众", "慢游", "摄影"],
@@ -222,7 +182,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [60, 100], effort: "适中", bestTime: "白天看遗迹，雨后留意湿滑地面。", arrival: "明确石头城遗址的公共入口，不以整个清凉山片区为落点。", ticket: "公共游览与周边收费场馆分别确认。", reminder: "不攀爬遗迹和石壁，附近登山不包含在短线中。" },
     foodNote: "在城市街区解决正餐，遗址游览留补水与休息。", nearbyIds: ["yihe-road"], sources: [{ title: "南京市政府 · 清凉山与石头城公园管理", url: "https://www.nanjing.gov.cn/xxgkn/jytabljggk/2024njytabl/shirddbjy/202411/t20241114_5009237.html" }],
   },
-  {
+{
     id: "yuzui", name: "鱼嘴湿地公园", category: "山水风景", region: "河西江岸", image: "", aliases: ["鱼嘴", "鱼嘴公园"], environment: "outdoor", admission: "public",
     description: "在江岸、灯塔与湿地之间看城市边缘的开阔，把日落当作天气允许时的惊喜。",
     themes: ["长江", "湿地", "灯塔", "日落", "自然", "摄影", "江岸", "小众", "散步"],
@@ -232,7 +192,7 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [60, 120], effort: "适中", bestTime: "天气稳定的白天或傍晚，不保证日落观感。", arrival: "定位公园实际开放入口，江岸内仍有步行。", ticket: "公共游览与活动或其他项目分别核实。", reminder: "遵守亲水与汛期管理，不保证江豚出现，不进入封闭岸线。" },
     foodNote: "提前解决正餐或准备适量饮水，不依赖岸边必有餐饮。", nearbyIds: [], sources: [{ title: "南京市水务局 · 鱼嘴江岸", url: "https://shuiwu.nanjing.gov.cn/bmdt/202510/t20251013_5665601.html" }],
   },
-  {
+{
     id: "yanziji", name: "燕子矶", category: "山水风景", region: "幕燕江岸", image: "", aliases: ["燕子矶公园", "幕燕"], environment: "outdoor", admission: "ticketed",
     description: "在矶头与长江岸线之间读历史景观，选一段开放步道，看江也看地形。",
     themes: ["长江", "江岸", "历史", "山水", "摄影", "慢游", "地形"],
@@ -242,4 +202,78 @@ export const expandedPlaces: Place[] = [
     practical: { durationMinutes: [90, 150], effort: "适中", bestTime: "天气稳定的白天，风雨时缩短露天停留。", arrival: "明确燕子矶景区还是幕燕公共岸线的具体入口。", ticket: "收费景区与公共滨江空间分开，票务范围按当期公告。", reminder: "部分路段有台阶和临江高差，遵守汛期、封闭与观景规定。" },
     foodNote: "在实际开放的城市街区安排正餐，沿江活动前备水。", nearbyIds: [], sources: [{ title: "南京市政府 · 幕燕滨江景观", url: "https://www.nanjing.gov.cn/bmdt/202304/t20230423_3895426.html" }],
   },
+{
+  "id": "nanjing-memorial",
+  "name": "侵华日军南京大屠杀遇难同胞纪念馆",
+  "category": "博物场馆",
+  "region": "江东门",
+  "image": "",
+  "aliases": [
+    "南京大屠杀纪念馆",
+    "南京大屠杀遇难同胞纪念馆",
+    "江东门纪念馆"
+  ],
+  "environment": "mixed",
+  "admission": "public",
+  "description": "在史料、证言与纪念空间中铭记南京大屠杀历史，悼念遇难同胞，珍视和平。",
+  "themes": [
+    "近代史",
+    "历史",
+    "抗战",
+    "和平",
+    "纪念",
+    "史料",
+    "历史教育"
+  ],
+  "history": [
+    "纪念馆位于南京江东门，是悼念南京大屠杀遇难同胞、保存历史记忆与开展和平教育的重要场所。参观以理解史实、阅读史料与证言为重点，尊重遇难者及其家属，不将其作为娱乐性打卡地点。",
+    "本页默认安排江东门馆区的南京大屠杀史实展及按现场开放可达的纪念空间。“三个必胜”主题展与史实展的出入口不同，南京利济巷慰安所旧址陈列馆则在另一地点；各展馆须分别预约，不把一个预约视作可以参观全部展馆。"
+  ],
+  "highlights": [
+    {
+      "title": "史料与证言",
+      "detail": "沿展陈顺序阅读文献、实物与见证者叙述，理解材料如何共同呈现历史，不只浏览标题。"
+    },
+    {
+      "title": "纪念空间",
+      "detail": "在允许开放的室外纪念空间肃静停留，悼念遇难同胞，拍摄与参观遵守馆方规定。"
+    },
+    {
+      "title": "和平教育",
+      "detail": "把展览中的个人经历与对和平的思考联系起来，参观后留一段整理感受的时间。"
+    }
+  ],
+  "walk": [
+    "通过官方微信公众号预约南京大屠杀史实展，核对预约日期、时段、展馆和有效证件。",
+    "按预约展馆的入口核验入馆，依现场导览阅读史料与证言，不把其他展馆当作自动包含。",
+    "参观后按开放范围在纪念空间肃静停留，留出休息与返程时间，不安排紧凑赶场。"
+  ],
+  "practical": {
+    "durationMinutes": [
+      120,
+      180
+    ],
+    "effort": "适中",
+    "bestTime": "常规开放参考08:30—17:30，16:30停止入馆；周一闭馆，法定节假日除外，特殊通知优先。",
+    "arrival": "江东门馆区，南京市水西门大街418号；以预约的具体展馆入口为准，不导航到利济巷馆区。",
+    "ticket": "展馆免费开放，所有观众均需通过官方微信公众号实名预约；各展馆分开预约，不保证余量，不购买第三方名额。",
+    "reminder": "室内外混合；肃静参观、着装得体，遵守摄影规定。部分史料可能带来情绪压力，携儿童同行应提前评估并适时休息。"
+  },
+  "foodNote": "参观前后在馆外正常营业的餐饮场所用餐，留出安静休息和整理感受的时间，馆内饮食按规定。",
+  "nearbyIds": [],
+  "sources": [
+    {
+      "title": "纪念馆官网 · 场馆简介",
+      "url": "https://www.19371213.com.cn/about/museum/"
+    },
+    {
+      "title": "纪念馆官网 · 参观指南",
+      "url": "https://www.19371213.com.cn/guide/how/"
+    },
+    {
+      "title": "纪念馆官网 · 免费开放与官方预约提醒（2026-06-22）",
+      "url": "https://www.19371213.com.cn/information/notices/202606/t20260622_5863486.html"
+    }
+  ]
+}
 ];

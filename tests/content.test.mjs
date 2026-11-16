@@ -13,7 +13,7 @@ const { selectPlanningPlaces, planningRequirements, assertRequiredStops } = load
 const input = { duration: "一日游", budget: 300, interests: "明朝历史", startPoint: "南京南站", date: "2026-11-18", walking: "适中" };
 
 test("所有目的地都有完整图文、官方参考与有效关联，图片可用", () => {
-  assert.equal(places.length, 34);
+  assert.equal(places.length, 31);
   const ids = new Set(places.map(place => place.id));
   assert.equal(ids.size, places.length);
   for (const place of places) {
@@ -61,8 +61,19 @@ test("新收录目的地和别名能成为实际需求，博物馆名称不串�
 
 test("纯逛吃不会用观光景点代替，远郊不挤入普通市内候选", () => {
   const food = selectPlanningPlaces({ ...input, interests: "只想吃小吃和逛吃" }, places);
-  assert.ok(food.length >= 5 && food.every(place => place.category === "美食街巷"));
+  assert.ok(food.length >= 1 && food.every(place => place.category === "美食街巷"));
   assert.ok(!selectPlanningPlaces({ ...input, interests: "第一次来，随便看看" }, places).some(place => place.remote));
+});
+
+test("删除的目的地不再出现在目录或推荐关联中；纪念馆别名可规划", () => {
+  const removed = new Set(["mingwalang", "hongmiao", "sangi-lane", "nanhu"]);
+  assert.ok(places.every(place => !removed.has(place.id) && place.nearbyIds.every(id => !removed.has(id))));
+  const { placeImages } = loadModule("../src/data/place-images.ts");
+  assert.ok(places.every(place => placeImages[place.id]?.length > 0));
+  assert.ok(placeImages["nanjing-memorial"].length >= 4);
+  for (const interests of ["南京大屠杀纪念馆", "南京大屠杀遇难同胞纪念馆", "江东门纪念馆"]) {
+    assert.deepEqual(planningRequirements({ ...input, interests }, places).requiredPlaceIds, ["nanjing-memorial"]);
+  }
 });
 
 test("单目的地需求只提供一个候选，避免同园区上午下午重复排站", () => {
