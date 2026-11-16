@@ -10,6 +10,8 @@ test("框架内部 URL 为 localhost 时，以实际 Host 接受局域网同源�
   assert.equal(isSameSiteRequest(request({ host: "192.0.2.10:3000", origin: "http://192.0.2.10:3000" })), true);
   assert.equal(isSameSiteRequest(request({ host: "jinling.test:3103", origin: "http://jinling.test:3103" })), true);
   assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin: "http://localhost:3000" })), true);
+  assert.equal(isSameSiteRequest(request({ host: "192.0.2.10:3000", origin: "http://192.0.2.10:3000" })), true);
+  assert.equal(isSameSiteRequest(request({ host: "10.8.0.2:3000", origin: "http://10.8.0.2:3000" })), true);
 });
 
 test("仍拒绝跨站、不同端口、null 来源和伪造转发头", () => {
