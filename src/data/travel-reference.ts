@@ -3,6 +3,7 @@ import { expandedPlaces } from "@/data/expanded-places";
 export type VisitReference = {
   entry: string; opening: string; booking: string; ticketYuan?: number; ticketScope: string;
   environment: "outdoor" | "mixed" | "indoor"; source: { title: string; url: string }; checkedAt: string;
+  closedWeekdays?: number[]; daytimeOnly?: boolean;
 };
 
 const zhongshan = { title: "中山陵园管理局 · 购票与预约提示（2025-09-30）", url: "https://zschina.nanjing.gov.cn/fjms/fwzn/mpxx/" };
@@ -27,13 +28,40 @@ export const visitReferences: Record<string, VisitReference> = {
 for (const place of expandedPlaces) {
   visitReferences[place.id] = {
     entry: place.practical.arrival,
-    opening: place.practical.bestTime + "最新开放、临时闭馆与停止入场以官方当期通知为准。",
+    opening: "尚未核实完整营业时间；出发前通过官方渠道确认开放范围、闭馆与停止入场时间。推荐游览时段不等于营业时间。",
     booking: place.practical.ticket,
     ticketScope: place.admission === "public" ? "公共游览或常设参观范围；消费、临展及其他项目另核，不保证当天可入场" : "收费参观，尚未核实当日票价，不计入已知票价小计；出发前另查",
     environment: place.environment || "mixed", source: place.sources[0], checkedAt,
     ...(place.id === "nanjing-memorial" ? { ticketYuan: 0, source: place.sources[1], ticketScope: "官方展馆免费参观，须实名分馆预约；不含交通、寄存及其他服务费用" } : {}),
   };
 }
+
+Object.assign(visitReferences["nanjing-museum"], {
+  opening: "常规9:00—17:00，16:00停止检票，周一闭馆；寒暑假、法定节假日及特殊展览安排以官方另行通知为准。",
+  booking: "通过南京博物院官方参观渠道实名预约，按预约日期、时段及证件入馆；不要将第三方代约视为官方服务。",
+  ticketYuan: 0, ticketScope: "常设展免费参观；特展、讲解及其他服务单独核实，不保证预约余量",
+  closedWeekdays: [1], daytimeOnly: true,
+  source: { title: "南京博物院 · 参观", url: "https://www.njmuseum.org.cn/zh/visitIndex" },
+});
+Object.assign(visitReferences["six-dynasties"], {
+  opening: "常规9:00—17:30，17:00停止售票；周一闭馆，法定节假日开放安排以当期公告为准。",
+  booking: "通过六朝博物馆或南京市博物总馆官方渠道核对购票、优惠资格与当日入场要求。",
+  ticketYuan: 30, ticketScope: "官方分馆页面成人普通票参考；优惠、临展及讲解另核，非当日成交价",
+  closedWeekdays: [1], daytimeOnly: true,
+  source: { title: "南京市博物总馆 · 六朝博物馆", url: "https://www.njmuseumadmin.com/Stadium/index/id/6" },
+});
+Object.assign(visitReferences["chaotian-palace"], {
+  opening: "常规9:00—18:00，17:00停止售票；周一闭馆，法定节假日开放安排以当期公告为准。",
+  booking: "先区分公共外部空间与二进收费参观区域，通过南京市博物总馆官方渠道核实购票和优惠。",
+  ticketYuan: 25, ticketScope: "二进区域成人普通票参考；不代表整个周边空间均收费，优惠及其他服务另核",
+  closedWeekdays: [1], daytimeOnly: true,
+  source: { title: "南京市博物总馆 · 南京市博物馆·朝天宫", url: "https://www.njmuseumadmin.com/Stadium/index/id/2" },
+});
+Object.assign(visitReferences["nanjing-memorial"], {
+  opening: "江东门馆区常规8:30—17:30，16:30停止入馆；周一闭馆，法定节假日及特殊活动以官方公告为准。",
+  booking: "所有观众（含未成年人）须通过官方微信公众号实名预约；三个展馆分别预约。参观指南列明提前1—7天预约、每日8:00放票，临时调整与余量以官方渠道为准；未授权第三方代约。",
+  closedWeekdays: [1], daytimeOnly: true,
+});
 
 // 下面不是地图计算/人工实测时长，而是本站用于避免排满行程的保守编辑预留。
 export function transferReserve(fromRegion: string, toRegion: string): [number, number] {

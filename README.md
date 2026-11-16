@@ -152,4 +152,5 @@ HTTP 检查、移动端交互回归与真实模型评估见[开发与测试指�
 | [行程规划规则](docs/planner-quality.md) | 时间、体力、预算参考及版本管理。 |
 | [内容维护指南](docs/content-guide.md) | 目的地资料结构、来源与扩充流程。 |
 | [开发与测试](docs/development.md) | 本地验证、浏览器回归与 API 评估。 |
+| [手机与远程验收](docs/acceptance.md) | 真机操作、需求覆盖与任务恢复检查。 |
 | [素材说明](docs/assets.md) | 图片清单、内容来源与使用范围。 |

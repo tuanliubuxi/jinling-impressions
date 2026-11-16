@@ -12,6 +12,9 @@ export function planningRequirements(input: PlanRequest, catalog: Place[]) {
   const ming = wants(["明朝", "明代", "明史", "朱元璋"]);
   const requiredPlaceIds = catalog.filter(place => !excluded.includes(place.id) && wants(mentionedNames(query, place, catalog).map(name => name.toLowerCase()))).map(place => place.id);
   if (shopping && !excluded.includes("xinjiekou") && catalog.some(place => place.id === "xinjiekou") && !requiredPlaceIds.includes("xinjiekou")) requiredPlaceIds.push("xinjiekou");
+  // 泛指湖景时提供一个实际湖泊站点；点名其他湖泊则尊重原选择。
+  if (wants(["湖景", "湖边", "湖泊"]) && !requiredPlaceIds.some(id => /湖/.test(catalog.find(place => place.id === id)?.name || "")) && !excluded.includes("xuanwuhu") && catalog.some(place => place.id === "xuanwuhu")) requiredPlaceIds.push("xuanwuhu");
+  if (wants(["夜景", "夜游", "夜色"]) && !requiredPlaceIds.some(id => ["bridge", "yuzui", "qinhuai_night"].includes(id)) && !excluded.includes("qinhuai_night") && catalog.some(place => place.id === "qinhuai_night")) requiredPlaceIds.push("qinhuai_night");
   const otherInterests = wants(["历史", "文化", "明朝", "明代", "明史", "公园", "湖泊", "自然", "夜景", "夜游", "小吃", "美食", "逛吃", "看展", "博物馆", "亲子", "动物", "街巷", "登山", "爬山"]);
   const shoppingOnly = shopping && !otherInterests && requiredPlaceIds.every(id => id === "xinjiekou");
   const food = wants(["美食", "逛吃", "小吃"]);
@@ -47,15 +50,15 @@ export function assertRequiredStops(requiredIds: string[], selectedIds: string[]
   if (requiredIds.some(id => !selectedIds.includes(id))) throw new Error("UNSATISFIED_INTERESTS");
 }
 
-export function planningContext(place: Place) {
+export function planningContext(place: Place, catalog: Place[] = []) {
   return {
     id: place.id, name: place.name, region: place.region, themes: place.themes,
     description: place.description, history: place.history,
-    highlights: place.highlights, suggestedWalk: place.walk,
+    highlights: place.highlights, suggestedWalk: place.walk.filter(step => !catalog.some(other => other.id !== place.id && mentionedNames(step, other, catalog).length)),
     editorialVisitMinutes: place.practical.durationMinutes, effort: place.practical.effort,
     bestTime: place.practical.bestTime, arrival: place.practical.arrival,
     ticketNote: place.practical.ticket, reminder: place.practical.reminder,
-    foodNote: place.foodNote, nearbyIds: place.nearbyIds,
+    foodNote: place.foodNote,
     environment: place.environment, admission: place.admission, remote: place.remote || false,
   };
 }

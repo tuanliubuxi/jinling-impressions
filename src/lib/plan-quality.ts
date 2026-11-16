@@ -2,6 +2,7 @@ import type { PlanDraft, PlanRequest } from "@/lib/plan-contract";
 import type { Place } from "@/types/place";
 import { visitReferences, transferReserve } from "@/data/travel-reference";
 import { namesFor, mentionedNames, affirmative } from "@/lib/place-match";
+import { tripDates, visitDay, visitSchedule } from "@/lib/visit-schedule";
 
 export class QualityError extends Error {
   constructor(public code: string, message: string, public status = 422) { super(message); }
@@ -26,12 +27,14 @@ export function policyFor(input: PlanRequest, catalog: Place[]) {
 }
 export function availablePlaces(input: PlanRequest, catalog: Place[]) {
   const policy = policyFor(input, catalog);
-  return catalog.filter(place => !policy.excluded.includes(place.id) && (!policy.indoorOnly || visitReferences[place.id]?.environment === "indoor") && (!policy.lowWalking || place.practical.effort !== "较高") && (!(policy.noTickets || input.budget === 0) || place.admission !== "ticketed" && (visitReferences[place.id]?.ticketYuan ?? 0) === 0) && (visitReferences[place.id]?.ticketYuan === undefined || visitReferences[place.id].ticketYuan! <= input.budget));
+  return catalog.filter(place => visitSchedule(place.id, input).some(day => day.available) && !policy.excluded.includes(place.id) && (!policy.indoorOnly || visitReferences[place.id]?.environment === "indoor") && (!policy.lowWalking || place.practical.effort !== "较高") && (!(policy.noTickets || input.budget === 0) || place.admission !== "ticketed" && (visitReferences[place.id]?.ticketYuan ?? 0) === 0) && (visitReferences[place.id]?.ticketYuan === undefined || visitReferences[place.id].ticketYuan! <= input.budget));
 }
 export function preflight(input: PlanRequest, catalog: Place[]) {
   const policy = policyFor(input, catalog);
   if (policy.unknown.length) throw new QualityError("UNSUPPORTED_DESTINATION", `目前缺少${policy.unknown.join("、")}的可靠资料，不能把其他景点当作替代完成你的要求。可先从探索页现有目的地选择，或移除该要求。尚未调用模型。`);
   const explicit = catalog.filter(place => mentionedNames(queryFor(input), place, catalog).some(name => affirmative(queryFor(input), name)) && !policy.excluded.includes(place.id));
+  const closed = explicit.filter(place => !visitSchedule(place.id, input).some(day => day.available));
+  if (closed.length) throw new QualityError("CLOSED_ON_TRIP_DATE", `${closed.map(place => place.name).join("、")}在所选日期触发常规闭馆规则，请更换日期或地点；特殊开放以官方公告为准。尚未调用模型。`);
   if (explicit.reduce((sum, place) => sum + (visitReferences[place.id]?.ticketYuan ?? 0), 0) > input.budget) throw new QualityError("CONFLICTING_REQUIREMENTS", "点名地点的成人参考票价小计已超过预算，请调整地点或预算；尚未调用模型。");
   if (explicit.some(place => policy.indoorOnly && visitReferences[place.id]?.environment !== "indoor" || policy.lowWalking && place.practical.effort === "较高" || (policy.noTickets || input.budget === 0) && place.admission === "ticketed" || (visitReferences[place.id]?.ticketYuan ?? 0) > input.budget)) throw new QualityError("CONFLICTING_REQUIREMENTS", "点名的地点与室内、少走路或预算条件存在冲突，请调整条件；尚未调用模型。");
   const available = availablePlaces(input, catalog);
@@ -42,8 +45,18 @@ export function assessPlan(draft: PlanDraft, input: PlanRequest, catalog: Place[
   const policy = policyFor(input, catalog);
   const allowed = new Set(availablePlaces(input, catalog).map(place => place.id));
   const periods = ["上午", "下午", "傍晚", "夜间"];
+  const checkNarrative = (text: string, selected: Set<string>) => {
+    for (const clause of text.split(/[，。；,;\n]/)) {
+      if (/不安排|不追加|不附加|不加|不登|不去|不看|不承诺|不建议|不考虑|不再|舍弃|放弃|去掉|删除|取消|略过|不含|未安排|未列入|不列入|没有安排/.test(clause)) continue;
+      if (!selected.has("qinhuai_night") && /(?:看|接|赏|逛|游|留|秦淮河夜色|秦淮夜色)[^。；]{0,12}(?:秦淮(?:河)?夜(?:色|景)|水岸夜色)/.test(clause) || !selected.has("citywall") && /(?:再|可|考虑|继续|加|去|安排|搭配)[^。；]{0,8}(?:湖畔城墙|登城)/.test(clause)) throw new QualityError("UNSATISFIED_CONSTRAINTS", "攻略文字追加了未列入路线的夜游或登城活动，未展示为成功。", 502);
+    }
+  };
+  checkNarrative([draft.title, draft.summary, ...(draft.tips || [])].join("。"), new Set(draft.days.flatMap(day => day.stops.map(stop => stop.placeId))));
   const days = draft.days.map(day => {
     const main = day.stops.filter(stop => !stop.optional);
+    const date = tripDates(input)[day.day - 1];
+    checkNarrative([day.theme, day.meal, ...day.stops.flatMap(stop => [stop.reason, stop.transition, ...(stop.activities || [])])].join("。"), new Set(day.stops.map(stop => stop.placeId)));
+    if (day.stops.some(stop => !visitDay(stop.placeId, date).available || visitReferences[stop.placeId]?.daytimeOnly && !["上午", "下午"].includes(stop.period))) throw new QualityError("UNSATISFIED_CONSTRAINTS", "模型将场馆安排在常规闭馆日或不适合入馆的晚间时段，未展示为成功。", 502);
     if (day.stops.some(stop => !allowed.has(stop.placeId))) throw new QualityError("UNSATISFIED_CONSTRAINTS", "模型安排了与排除地点、体力、室内或预算条件冲突的地点，未展示为成功。", 502);
     if (day.stops.some((stop, i) => i > 0 && periods.indexOf(stop.period) < periods.indexOf(day.stops[i - 1].period)) || day.stops.some(stop => stop.placeId === "qinhuai_night" && !["傍晚", "夜间"].includes(stop.period))) throw new QualityError("UNSATISFIED_CONSTRAINTS", "模型的游览时段顺序不合理，未展示为成功。", 502);
     const chosen = main.map(stop => catalog.find(place => place.id === stop.placeId)!);
@@ -62,8 +75,10 @@ export function assessPlan(draft: PlanDraft, input: PlanRequest, catalog: Place[
   });
   const ticketItems = draft.days.flatMap(day => day.stops.filter(stop => !stop.optional)).map(stop => ({ place: catalog.find(place => place.id === stop.placeId)!.name, ...visitReferences[stop.placeId] })).filter(item => typeof item.ticketYuan === "number");
   const knownTickets = ticketItems.reduce((sum, item) => sum + (item.ticketYuan ?? 0), 0);
+  const unknownPaid = draft.days.flatMap(day => day.stops.filter(stop => !stop.optional)).map(stop => catalog.find(place => place.id === stop.placeId)!).filter(place => place.admission === "ticketed" && visitReferences[place.id]?.ticketYuan === undefined).map(place => place.name);
+  const scheduleNotes = draft.days.flatMap(day => day.stops.filter(stop => visitReferences[stop.placeId]?.closedWeekdays).map(stop => `${catalog.find(place => place.id === stop.placeId)!.name}（${tripDates(input)[day.day - 1]}）：${visitDay(stop.placeId, tripDates(input)[day.day - 1]).note}`));
   if (knownTickets > input.budget) throw new QualityError("UNSATISFIED_CONSTRAINTS", "已知成人参考票价小计超过预算，未展示为成功。", 502);
   const dailyAllowance = input.duration === "半日游" ? 35 : 70;
   const suggestedReserve = knownTickets + dailyAllowance * draft.days.length;
-  return { days, knownTicketsYuan: knownTickets, suggestedReserveYuan: suggestedReserve, budgetTight: suggestedReserve > input.budget, ticketItems: ticketItems.map(({ place, ticketYuan, ticketScope, source, checkedAt }) => ({ place, ticketYuan: ticketYuan!, ticketScope, source, checkedAt })), notes: ["时间按主要站点最短编辑停留＋转场预留＋到达/返程与餐休预留检查，不是实际通行测算；备选站点另占时间。", `餐饮与市内交通另按每天${dailyAllowance}元作编辑预留，不是报价；不含住宿、城际交通、购物、船票及其他可选项目。`, ...(suggestedReserve > input.budget ? ["预算低于本站编辑预留，需自带餐食、减少消费或增加预算；当前不能保证全程费用可覆盖。"] : [])] };
+  return { days, knownTicketsYuan: knownTickets, suggestedReserveYuan: suggestedReserve, budgetTight: suggestedReserve > input.budget, ticketItems: ticketItems.map(({ place, ticketYuan, ticketScope, source, checkedAt }) => ({ place, ticketYuan: ticketYuan!, ticketScope, source, checkedAt })), notes: ["时间按主要站点最短编辑停留＋转场预留＋到达/返程与餐休预留检查，不是实际通行测算；备选站点另占时间。", `餐饮与市内交通另按每天${dailyAllowance}元作编辑预留，不是报价；不含住宿、城际交通、购物、船票及其他可选项目。`, ...(unknownPaid.length ? [`尚未核价的必需门票：${unknownPaid.join("、")}。这些费用未计入以上小计和编辑预留，无法确认当前预算可覆盖。`] : []), ...scheduleNotes, ...(suggestedReserve > input.budget ? ["预算低于本站编辑预留，需自带餐食、减少消费或增加预算；当前不能保证全程费用可覆盖。"] : [])] };
 }

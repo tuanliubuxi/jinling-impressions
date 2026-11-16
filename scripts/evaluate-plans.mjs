@@ -5,6 +5,10 @@ import assert from "node:assert/strict";
 
 // 默认只列场景；--live 显式开启计费调用。不输出环境变量或上游原始错误。
 const cases = [
+  { id: "monday-museum", interests: "只去南京博物院，不加其他地点", date: "2026-11-23", expected: "CLOSED_ON_TRIP_DATE" },
+  { id: "monday-memorial", interests: "只去江东门纪念馆，不加其他地点", date: "2026-11-23", expected: "CLOSED_ON_TRIP_DATE" },
+  { id: "two-days-closure", interests: "必须去南京博物院和玄武湖，两天各安排一个主要目的地，不加其他地点", date: "2026-11-23", duration: "两日游" },
+  { id: "indoor-culture", interests: "下雨，只在室内，想看南京历史文化，不购物", walking: "少走路" },
   { id: "memorial", interests: "只去江东门纪念馆了解南京大屠杀史实与和平教育，不加其他地点" },
   { id: "first-visit", interests: "第一次来南京，想了解这座城市，历史和市民生活都想看看，不赶场" },
   { id: "family", interests: "带6岁孩子，想看自然风景，方便吃饭和休息，不爬山", walking: "少走路" },

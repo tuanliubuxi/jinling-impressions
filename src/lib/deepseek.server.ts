@@ -5,8 +5,9 @@ import { cityChapters } from "@/data/city-guide";
 import { itinerarySchema, unwrapItinerary } from "@/lib/itinerary-schema";
 import { getAIConfig } from "@/lib/ai-config.server";
 import { parsePlanDraft, type PlanRequest, type PlanResult } from "@/lib/plan-contract";
-import { preflight, assessPlan, QualityError, policyFor } from "@/lib/plan-quality";
+import { preflight, assessPlan, QualityError, policyFor, availablePlaces } from "@/lib/plan-quality";
 import { visitReferences } from "@/data/travel-reference";
+import { visitSchedule } from "@/lib/visit-schedule";
 
 export class PlanError extends Error {
   generation?: PlanResult["generation"];
@@ -24,13 +25,15 @@ export async function generatePlan(input: PlanRequest, signal: AbortSignal, base
   }
   const requirements = planningRequirements(input, places);
   const policy = policyFor(input, places);
+  const availableIds = new Set(availablePlaces(input, places).map(place => place.id));
+  if (requirements.requiredPlaceIds.some(id => !availableIds.has(id))) throw new PlanError("CONFLICTING_REQUIREMENTS", "需要的游览体验与日期、室内、体力或预算条件冲突，请调整条件。尚未调用模型。", 422);
   if (requirements.shoppingOnly && input.duration === "两日游") throw new PlanError("INSUFFICIENT_SHOPPING_DATA", "目前购物资料集中在新街口一个商圈，不能可靠地编成两天不重复的路线。请改为半日/一日，或补充其他兴趣。尚未调用模型。", 422);
   if (requirements.singleDestination && input.duration === "两日游") throw new PlanError("INSUFFICIENT_DATA", "你只选择了一处目的地，目前不能将同一地点重复编成两天路线。请缩短时长或补充其他地点。尚未调用模型。", 422);
   const capacity = (input.duration === "半日游" || policy.lowWalking ? 2 : 3) * (input.duration === "两日游" ? 2 : 1);
   if (requirements.requiredPlaceIds.length > capacity) throw new PlanError("CONFLICTING_REQUIREMENTS", "点名的主要目的地超过这次时长的建议数量，请减少地点或增加游玩时间。尚未调用模型。", 422);
   const candidates = selectPlanningPlaces(input, places);
   const singleStop = requirements.shoppingOnly || requirements.singleDestination || candidates.length === 1;
-  const context = candidates.map(place => ({ ...planningContext(place), visitReference: visitReferences[place.id] }));
+  const context = candidates.map(place => ({ ...planningContext(place, places), visitReference: visitReferences[place.id], dailyAvailability: visitSchedule(place.id, input) }));
   const system = plannerPrompt;
   let upstream: Response;
   try {

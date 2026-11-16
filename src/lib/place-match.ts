@@ -1,7 +1,7 @@
 import type { Place } from "@/types/place";
 
 export function namesFor(place: Place): string[] {
-  return [place.name, ...(place.aliases || []), ...(place.id === "citywall" ? ["明城墙", "城墙"] : []), ...(place.id === "xinjiekou" ? ["德基", "金鹰", "新百", "中央商场", "新街口铜像", "新街口孙中山像"] : [])];
+  return [place.name, ...(place.aliases || []), ...(place.id === "qinhuai_night" ? ["秦淮夜景", "秦淮夜色", "秦淮河夜景"] : []), ...(place.id === "citywall" ? ["明城墙", "城墙"] : []), ...(place.id === "xinjiekou" ? ["德基", "金鹰", "新百", "中央商场", "新街口铜像", "新街口孙中山像"] : [])];
 }
 
 // “南京城墙博物馆”中的“城墙”不能同时强制安排湖畔城墙。
