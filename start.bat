@@ -41,7 +41,7 @@ echo [INFO] Building the production application...
 call npm.cmd run build
 if errorlevel 1 goto failed
 echo [INFO] Starting http://localhost:%JINLING_PORT% - press Ctrl+C to stop.
-call npm.cmd start -- --hostname 0.0.0.0 --port "%JINLING_PORT%"
+node node_modules\next\dist\bin\next start --hostname 0.0.0.0 --port "%JINLING_PORT%"
 exit /b %errorlevel%
 
 :failed

@@ -31,4 +31,4 @@ fi
 echo '[INFO] Building the production application...'
 npm run build
 echo "[INFO] Starting http://localhost:$JINLING_PORT - press Ctrl+C to stop."
-exec npm start -- --hostname 0.0.0.0 --port "$JINLING_PORT"
+exec node node_modules/next/dist/bin/next start --hostname 0.0.0.0 --port "$JINLING_PORT"
