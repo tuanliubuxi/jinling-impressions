@@ -5,6 +5,7 @@ import { parsePlanRequest } from "@/lib/plan-contract";
 import { isRequestId } from "@/lib/plan-job-contract";
 import { planJobs } from "@/lib/plan-job-store.server";
 import { JobError, type PlanJob } from "@/lib/plan-jobs";
+import { isSameSiteRequest } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -56,8 +57,7 @@ async function readBody(request: Request): Promise<unknown> {
 }
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) return reply({ code: "ORIGIN_REJECTED", message: "请从本站发起规划请求。" }, 403);
+  if (!isSameSiteRequest(request)) return reply({ code: "ORIGIN_REJECTED", message: "请求来源未通过校验，尚未创建生成任务。请从当前站点重新提交。" }, 403);
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) return reply({ code: "INVALID_REQUEST", message: "请使用 JSON 格式提交需求。" }, 415);
   let input;
   try {

@@ -21,6 +21,7 @@ export class PlanJobs {
   private recent: number[] = [];
   private lastPrune = 0;
   constructor(private repository: JobRepository, private generate: (input: PlanRequest, signal: AbortSignal) => Promise<PlanResult>, private now = Date.now) {}
+  useGenerator(generate: (input: PlanRequest, signal: AbortSignal) => Promise<PlanResult>) { this.generate = generate; }
 
   async get(id: string): Promise<PlanJob | undefined> {
     const reservation = this.reservations.get(id);
@@ -75,7 +76,7 @@ export class PlanJobs {
         job.status = "completed";
       } catch (error) {
         job.status = "failed";
-        const known = error instanceof Error && "code" in error && "status" in error && typeof error.code === "string" && error.code.startsWith("AI_") || error instanceof Error && "code" in error && ["TIMEOUT", "UPSTREAM_ERROR", "UPSTREAM_UNAVAILABLE", "INVALID_AI_OUTPUT"].includes(String(error.code));
+        const known = error instanceof Error && "code" in error && "status" in error && typeof error.code === "string" && error.code.startsWith("AI_") || error instanceof Error && "code" in error && ["TIMEOUT", "UPSTREAM_ERROR", "UPSTREAM_UNAVAILABLE", "INVALID_AI_OUTPUT", "UNSATISFIED_INTERESTS", "INSUFFICIENT_SHOPPING_DATA", "CONFLICTING_REQUIREMENTS"].includes(String(error.code));
         job.error = known ? { code: String((error as JobError).code), message: (error as Error).message, status: Number((error as JobError).status) || 502 } : { code: "INTERNAL_ERROR", message: "生成未完成，请稍后主动重试。", status: 500 };
       }
       try { await this.repository.write(job); } catch { console.error("plan_job_result_persist_failed"); }

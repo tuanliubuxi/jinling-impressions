@@ -39,3 +39,5 @@ const repository: JobRepository = {
 // 开发热更新保留同进程任务，重启则从磁盘恢复已完成结果。
 const runtime = globalThis as typeof globalThis & { jinlingPlanJobsV1?: PlanJobs };
 export const planJobs = runtime.jinlingPlanJobsV1 ??= new PlanJobs(repository, generatePlan);
+// 保留旧任务，但新任务使用热更新后的提示词与检索代码。
+planJobs.useGenerator?.(generatePlan);

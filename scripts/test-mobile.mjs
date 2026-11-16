@@ -129,4 +129,81 @@ try {
     console.log("PASS unavailable session storage: generation blocked before any API request");
     await ctx.close();
   }
+
+  // 不拦截本地 API：验证真实同源校验接受公开 Host，仍拒绝外站，不启动生成。
+  {
+    // Node fetch 会规范化 Host；用原生 HTTP 保留真实浏览器发送的公开 Host。
+    const { request } = await import("node:http");
+    const probe = origin => new Promise((resolve, reject) => {
+      const req = request({ hostname: "127.0.0.1", port: 3103, path: "/api/plan", method: "POST", headers: { "Content-Type": "application/json", Host: "192.0.2.10:3103", Origin: origin } }, response => {
+        let body = "";
+        response.setEncoding("utf8").on("data", chunk => { body += chunk; }).on("end", () => resolve({ status: response.statusCode, json: () => JSON.parse(body) }));
+      });
+      req.on("error", reject); req.end("{}");
+    });
+    const response = await probe("http://192.0.2.10:3103");
+    expect(response.status).toBe(400);
+    expect((await response.json()).code).toBe("INVALID_REQUEST");
+    const bad = await probe("https://unrelated.example");
+    expect(bad.status).toBe(403);
+    console.log("PASS actual API: LAN Host accepted, unrelated Origin rejected before generation");
+  }
+
+  // 403 未创建任务：释放表单，刷新不自动 POST，主动重提沿用编号。
+  {
+    const ctx = await context(); let posts = 0, id;
+    await ctx.route("**/api/plan**", route => {
+      if (route.request().method() !== "POST") return route.fulfill({ status: 404, json: { code: "JOB_NOT_FOUND", message: "未找到任务，没有重新调用模型。" } });
+      posts++;
+      const key = route.request().headers()["idempotency-key"];
+      if (!id) id = key; else expect(key).toBe(id);
+      return route.fulfill(posts === 1 ? { status: 403, json: { code: "ORIGIN_REJECTED", message: "来源未通过，尚未创建任务。" } } : { status: 200, json: { status: "completed", requestId: id, result: fixture } });
+    });
+    const page = await ctx.newPage(); await page.goto(`${base}/planner`); await fill(page); await page.locator("button[type=submit]").tap();
+    await expect(page.locator(".error-message[role=alert]")).toContainText("尚未创建");
+    await expect(page.locator("#interests")).toBeEnabled();
+    await expect(page.getByRole("button", { name: "继续查看这次结果" })).toHaveCount(0);
+    await page.reload(); await expect(page.locator("#interests")).toBeEnabled(); expect(posts).toBe(1);
+    await page.locator("button[type=submit]").tap(); await expect(page.locator("#plan-title")).toHaveText(fixture.title);
+    expect(posts).toBe(2);
+    console.log("PASS rejected creation: no endless resume, no automatic generation on reload");
+    await ctx.close();
+  }
+
+  {
+    const ctx = await context(); let posts = 0, gets = 0;
+    const staleId = "11111111-1111-4111-8111-111111111111";
+    await ctx.addInitScript(({ staleId }) => {
+      const input = { duration: "一日游", date: "2026-11-18", startPoint: "test station", budget: 300, walking: "适中", interests: "history" };
+      sessionStorage.setItem("jinling-planner-v2", JSON.stringify({ version: 2, savedAt: Date.now(), draft: { ...input, budget: "300" }, task: { requestId: staleId, input, startedAt: Date.now() } }));
+    }, { staleId });
+    await ctx.route("**/api/plan**", route => {
+      if (route.request().method() === "POST") { posts++; return route.fulfill({ status: 500, json: {} }); }
+      gets++; return route.fulfill({ status: 404, json: { code: "JOB_NOT_FOUND", message: "这次任务没有创建，没有重新调用模型。" } });
+    });
+    const page = await ctx.newPage(); await page.goto(`${base}/planner`);
+    await expect(page.locator(".error-message[role=alert]")).toContainText("没有创建");
+    await expect(page.locator("#interests")).toBeEnabled(); expect(posts).toBe(0); expect(gets).toBe(1);
+    console.log("PASS stale pending cache: recovery is read-only and never starts a missing task");
+    await ctx.close();
+  }
+
+  {
+    const ctx = await context(); let posts = 0;
+    const shopping = { ...fixture, title: "新街口商场慢逛", days: [{ ...fixture.days[0], theme: "商场购物", stops: [{ ...fixture.days[0].stops[0], placeId: "xinjiekou" }] }], sources: [{ ...fixture.sources[0], id: "xinjiekou", name: "新街口", image: "/images/xinjiekou.jpg" }] };
+    await ctx.route("**/api/plan**", route => {
+      posts++;
+      const input = route.request().postDataJSON();
+      expect(input.interests).toBe(posts === 1 ? "history" : "shopping");
+      return route.fulfill({ status: 200, json: { status: "completed", requestId: route.request().headers()["idempotency-key"], result: posts === 1 ? fixture : shopping } });
+    });
+    const page = await ctx.newPage(); await page.goto(`${base}/planner`); await fill(page); await page.locator("button[type=submit]").tap();
+    await expect(page.locator("#plan-title")).toHaveText(fixture.title);
+    await page.locator("#interests").fill("shopping");
+    await expect(page.getByRole("status").filter({ hasText: "尚未按当前表单重新生成" })).toBeVisible(); expect(posts).toBe(1);
+    await page.locator("button[type=submit]").tap(); await expect(page.locator("#plan-title")).toHaveText(shopping.title);
+    await expect(page.locator(".result-input")).toContainText("shopping"); expect(posts).toBe(2);
+    console.log("PASS changed interests: old result labeled, new submission uses current shopping input");
+    await ctx.close();
+  }
 } finally { await browser.close(); }

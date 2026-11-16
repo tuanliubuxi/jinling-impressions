@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { durations, walkingOptions, parsePlanRequest, type PlanResult } from "@/lib/plan-contract";
-import { createRequestId, isPlanResult, type SavedTask } from "@/lib/plan-job-contract";
+import { durations, walkingOptions, parsePlanRequest, type PlanRequest, type PlanResult } from "@/lib/plan-contract";
+import { createRequestId, isPlanResult, jobLifetimeMs, type SavedTask } from "@/lib/plan-job-contract";
 import { draftFields, readPlannerSession, writePlannerSession, type PlannerDraft } from "@/lib/planner-session";
 
 class TaskFailure extends Error {
-  constructor(message: string, public terminal = false) { super(message); }
+  constructor(message: string, public terminal = false, public canResubmit = false) { super(message); }
 }
 
 function pause(ms: number, signal: AbortSignal) {
@@ -25,10 +25,14 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [task, setTask] = useState<SavedTask | null>(null);
+  const [resultInput, setResultInput] = useState<PlanRequest | null>(null);
+  const [resultDirty, setResultDirty] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
   const taskRef = useRef<SavedTask | null>(null);
+  const retryTaskRef = useRef<SavedTask | null>(null);
   const resultRef = useRef<PlanResult | null>(null);
+  const resultInputRef = useRef<PlanRequest | null>(null);
   const resultHeading = useRef<HTMLHeadingElement | null>(null);
   useEffect(() => {
     let saved: ReturnType<typeof readPlannerSession>;
@@ -40,7 +44,12 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
         const field = formRef.current.elements.namedItem(name);
         if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) field.value = saved.draft[name];
       }
-      if (saved.result) { resultRef.current = saved.result; setResult(saved.result); }
+      if (saved.result) {
+        resultRef.current = saved.result; setResult(saved.result);
+        resultInputRef.current = saved.resultInput || null; setResultInput(saved.resultInput || null);
+        setResultDirty(!saved.resultInput || draftFields.some(field => saved.draft[field] !== String(saved.resultInput?.[field])));
+      }
+      retryTaskRef.current = saved.retryTask || null;
       taskRef.current = saved.task || null; setTask(saved.task || null);
     }
     setReady(true);
@@ -62,7 +71,7 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
 
   function persist(): boolean {
     try {
-      return writePlannerSession(window.sessionStorage, { version: 2, savedAt: Date.now(), draft: draft(), task: taskRef.current || undefined, result: resultRef.current || undefined });
+      return writePlannerSession(window.sessionStorage, { version: 2, savedAt: Date.now(), draft: draft(), task: taskRef.current || undefined, retryTask: retryTaskRef.current || undefined, result: resultRef.current || undefined, resultInput: resultInputRef.current || undefined });
     } catch { return false; }
   }
 
@@ -70,32 +79,37 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     let body;
     try { body = await response.json(); } catch { throw new TaskFailure("暂时无法读取服务器响应，本次任务编号已保留。"); }
     if (!body || typeof body !== "object" || Array.isArray(body)) throw new TaskFailure("服务器返回了无法识别的响应，本次任务编号已保留。");
-    if (!response.ok) throw new TaskFailure(typeof body.message === "string" ? body.message : "服务器暂时不可用，请继续查看本次任务。", body.status === "failed" || [400, 409, 410].includes(response.status));
+    if (!response.ok) throw new TaskFailure(typeof body.message === "string" ? body.message : "服务器暂时不可用，请继续查看本次任务。", body.status === "failed" || [400, 403, 404, 409, 410, 422].includes(response.status), [403, 404].includes(response.status));
     if (body.requestId !== requestId) throw new TaskFailure("响应与本次任务不一致，请继续查看，未创建新任务。");
     if (response.status === 202 && body.status === "pending") return null;
     if (body.status !== "completed" || !isPlanResult(body.result)) throw new TaskFailure("结果格式暂时无法显示，本次任务编号已保留，未重新生成。");
     return body.result;
   }
 
-  async function runTask(saved: SavedTask) {
+  async function runTask(saved: SavedTask, submit = false) {
     if (controller.current && !controller.current.signal.aborted) return;
     const active = new AbortController();
     controller.current = active;
     taskRef.current = saved; setTask(saved); setLoading(true); setError("");
     const timeout = setTimeout(() => active.abort(), 110000);
     try {
-      // 重连始终沿用同一个幂等编号；服务端只创建一次计费生成。
-      let completed = await readReply(await fetch("/api/plan", { method: "POST", signal: active.signal, headers: { "Content-Type": "application/json", "Idempotency-Key": saved.requestId }, body: JSON.stringify(saved.input) }), saved.requestId);
+      // 恢复与“继续查看”只做 GET，不能把过去被拒绝、尚未创建的请求自动变成计费生成。
+      const first = submit ? await fetch("/api/plan", { method: "POST", signal: active.signal, headers: { "Content-Type": "application/json", "Idempotency-Key": saved.requestId }, body: JSON.stringify(saved.input) }) : await fetch(`/api/plan?requestId=${encodeURIComponent(saved.requestId)}`, { signal: active.signal, cache: "no-store" });
+      let completed = await readReply(first, saved.requestId);
       while (!completed) {
         await pause(1200, active.signal);
         completed = await readReply(await fetch(`/api/plan?requestId=${encodeURIComponent(saved.requestId)}`, { signal: active.signal, cache: "no-store" }), saved.requestId);
       }
       if (controller.current !== active || active.signal.aborted) return;
       resultRef.current = completed; setResult(completed);
+      resultInputRef.current = saved.input; setResultInput(saved.input); setResultDirty(false); retryTaskRef.current = null;
       taskRef.current = null; setTask(null); persist();
     } catch (cause) {
       if (controller.current !== active) return;
-      if (cause instanceof TaskFailure && cause.terminal) { taskRef.current = null; setTask(null); }
+      if (cause instanceof TaskFailure && cause.terminal) {
+        retryTaskRef.current = cause.canResubmit ? saved : null;
+        taskRef.current = null; setTask(null);
+      }
       persist();
       setError(active.signal.aborted ? "已暂停等待，后台生成不会因此重新开始。可继续查看同一次结果。" : cause instanceof Error ? cause.message : "连接暂时中断，可以继续查看同一次任务。");
     } finally {
@@ -111,22 +125,25 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     try {
       const values = draft();
       const input = parsePlanRequest({ ...values, budget: Number(values.budget) });
-      const nextTask = { requestId: createRequestId(), input, startedAt: Date.now() };
+      const retry = retryTaskRef.current;
+      const nextTask = retry && Date.now() - retry.startedAt < jobLifetimeMs && JSON.stringify(retry.input) === JSON.stringify(input) ? retry : { requestId: createRequestId(), input, startedAt: Date.now() };
       const previousResult = resultRef.current;
-      taskRef.current = nextTask; resultRef.current = null;
+      const previousResultInput = resultInputRef.current;
+      taskRef.current = nextTask; resultRef.current = null; resultInputRef.current = null;
       if (!persist()) {
         taskRef.current = null;
         resultRef.current = previousResult;
+        resultInputRef.current = previousResultInput;
         throw new Error("浏览器无法保存任务，已阻止生成。请允许本站存储或更换浏览器后再试。");
       }
-      setResult(null); void runTask(nextTask);
+      setResult(null); setResultInput(null); setResultDirty(false); void runTask(nextTask, true);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "请检查输入和浏览器兼容性，尚未调用模型。"); }
   }
   return <>
     <div className="card form-card"><p className="notice">从明孝陵、明城墙到秦淮街巷，围绕你的兴趣选择路线。还没想好？先<Link href="/explore">探索金陵的 10 处目的地 ↗</Link></p>
     {!ready && <p role="status">正在载入交互脚本，暂不能提交。如果一直未就绪，请检查浏览器是否允许本站运行 JavaScript。</p>}
     <noscript><p className="error-message">生成行程需要 JavaScript。请开启浏览器的本站脚本权限后重新打开，当前未调用模型。</p></noscript>
-    <form ref={formRef} onSubmit={handleSubmit} onChange={() => { if (ready) persist(); }} method="post">
+    <form ref={formRef} onSubmit={handleSubmit} onChange={() => { if (ready) { const values = draft(); setResultDirty(!!resultRef.current && (!resultInputRef.current || draftFields.some(field => values[field] !== String(resultInputRef.current?.[field])))); persist(); } }} method="post">
       <fieldset disabled={!ready || loading || !!task} className="planner-fields">
         <label htmlFor="duration">游玩时长</label><select name="duration" id="duration" defaultValue="一日游">{durations.map(value => <option key={value}>{value}</option>)}</select>
         <label htmlFor="date">出游日期</label><input name="date" id="date" type="date" required />
@@ -145,6 +162,8 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     </div>
     {result && <section className="plan-result" aria-labelledby="plan-title">
       <span className="eyebrow">YOUR NANJING FIELD GUIDE</span><h2 id="plan-title" tabIndex={-1} ref={resultHeading}>{result.title}</h2><p className="plan-overview">{result.summary}</p>
+      {resultInput ? <p className="notice result-input">这份攻略依据：{resultInput.date} · {resultInput.duration} · 兴趣“{resultInput.interests}”</p> : <p className="notice result-input">这是之前保存的结果，旧版本未记录它的生成条件。</p>}
+      {resultDirty && <p className="notice" role="status">你已修改条件或正在查看旧结果。下面的攻略尚未按当前表单重新生成，不会自动调用模型。</p>}
       {result.days.map(day => <section className="plan-day" key={day.day}><div className="plan-day-heading"><span>DAY {String(day.day).padStart(2, "0")}</span><div><h3>第 {day.day} 天</h3><p>{day.theme}</p></div></div><ol className="plan-stops">{day.stops.map(stop => {
         const place = result.sources.find(source => source.id === stop.placeId);
         return <li className={`card itinerary-stop${stop.optional ? " optional-stop" : ""}`} key={stop.placeId}>

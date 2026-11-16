@@ -75,3 +75,46 @@ test("网络中断与取消均返回安全的可重试错误", async () => {
     await assert.rejects(generatePlan(input, aborted.signal), error => error.code === "TIMEOUT");
   } finally { globalThis.fetch = original; }
 });
+
+test("纯商场请求发送购物资料，并把新街口作为必需站点", async () => {
+  const { generatePlan: fullGenerate } = loadModule("../src/lib/deepseek.server.ts", {
+    "@/data/places": catalog,
+    "@/lib/planning-context": loadModule("../src/lib/planning-context.ts"),
+    "@/data/city-guide": loadModule("../src/data/city-guide.ts"),
+    "@/lib/model-json": loadModule("../src/lib/model-json.ts"),
+    "@/lib/ai-config.server": { getAIConfig: () => ({ endpoint: "https://api.deepseek.com/chat/completions", model: "test-model", apiKey: "test-key-only" }) },
+    "@/lib/plan-contract": contract,
+  });
+  const original = globalThis.fetch;
+  try {
+    let calls = 0;
+    globalThis.fetch = async (_url, options) => {
+      calls++;
+      const payload = JSON.parse(JSON.parse(options.body).messages[1].content);
+      assert.deepEqual(payload.requirements.requiredPlaceIds, ["xinjiekou"]);
+      assert.deepEqual(payload.cityBackground, []);
+      assert.deepEqual(payload.places.map(place => place.id), ["xinjiekou"]);
+      return success(JSON.stringify({ ...draft, title: "新街口商场慢逛", days: [{ ...draft.days[0], theme: "商场购物", stops: [{ ...draft.days[0].stops[0], placeId: "xinjiekou" }] }] }));
+    };
+    const result = await fullGenerate({ ...input, interests: "逛商场" }, new AbortController().signal);
+    assert.equal(result.days[0].stops[0].placeId, "xinjiekou");
+    await assert.rejects(fullGenerate({ ...input, interests: "逛商场", duration: "两日游" }, new AbortController().signal), error => error.code === "INSUFFICIENT_SHOPPING_DATA");
+    assert.equal(calls, 1, "资料不足的两日纯购物应在计费请求前拦截");
+  } finally { globalThis.fetch = original; }
+});
+
+test("模型遗漏明确要求的购物时，不把不匹配路线作为成功展示", async () => {
+  const { generatePlan: fullGenerate } = loadModule("../src/lib/deepseek.server.ts", {
+    "@/data/places": catalog,
+    "@/lib/planning-context": loadModule("../src/lib/planning-context.ts"),
+    "@/data/city-guide": loadModule("../src/data/city-guide.ts"),
+    "@/lib/model-json": loadModule("../src/lib/model-json.ts"),
+    "@/lib/ai-config.server": { getAIConfig: () => ({ endpoint: "https://api.deepseek.com/chat/completions", model: "test-model", apiKey: "test-key-only" }) },
+    "@/lib/plan-contract": contract,
+  });
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => success(JSON.stringify({ ...draft, days: [{ ...draft.days[0], stops: [{ ...draft.days[0].stops[0], placeId: "mingxiaoling" }] }] }));
+    await assert.rejects(fullGenerate({ ...input, interests: "明孝陵和商场都想逛" }, new AbortController().signal), error => error.code === "UNSATISFIED_INTERESTS");
+  } finally { globalThis.fetch = original; }
+});
