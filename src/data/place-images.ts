@@ -1655,36 +1655,6 @@ export const placeImages: Record<string, PlaceImage[]> = {
       "changes": "缩放并转为 WebP"
     }
   ],
-  "yanziji": [
-    {
-      "src": "/images/places/yanziji/84ed2e1fa31d.webp",
-      "width": 1600,
-      "height": 1200,
-      "alt": "燕子矶：从下游方向看矶头",
-      "caption": "燕子矶：从下游方向看矶头",
-      "author": "Sinopitt",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Swallow_Rock_in_Nanjing.JPG",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "takenAt": "2011-11-26",
-      "reviewedAt": "2026-11-16",
-      "changes": "缩放并转为 WebP"
-    },
-    {
-      "src": "/images/places/yanziji/f83d8702e1e0.webp",
-      "width": 1600,
-      "height": 1200,
-      "alt": "燕子矶附近的长江江面",
-      "caption": "燕子矶附近的长江江面",
-      "author": "Sinopitt",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Chang_Jiang_in_Yanziji,_Nanjing.jpg",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "takenAt": "2011-11-26",
-      "reviewedAt": "2026-11-16",
-      "changes": "缩放并转为 WebP"
-    }
-  ],
   "nanjing-memorial": [
     {
       "src": "/images/places/nanjing-memorial/d5770754eb4c.webp",

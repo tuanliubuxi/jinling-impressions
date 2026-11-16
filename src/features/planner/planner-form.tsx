@@ -185,7 +185,7 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     } catch (cause) { setError(cause instanceof Error ? cause.message : "修改要求无效，尚未调用模型。"); }
   }
   return <>
-    <div className="card form-card"><p className="notice">从明孝陵、明城墙到秦淮街巷，围绕你的兴趣选择路线。还没想好？先<Link href="/explore">探索金陵的 31 处目的地 ↗</Link></p>
+    <div className="card form-card"><p className="notice">从明孝陵、明城墙到秦淮街巷，围绕你的兴趣选择路线。还没想好？先<Link href="/explore">探索金陵的 30 处目的地 ↗</Link></p>
     {!ready && <p role="status">正在载入交互脚本，暂不能提交。如果一直未就绪，请检查浏览器是否允许本站运行 JavaScript。</p>}
     <noscript><p className="error-message">生成行程需要 JavaScript。请开启浏览器的本站脚本权限后重新打开，当前未调用模型。</p></noscript>
     <form ref={formRef} onSubmit={handleSubmit} onChange={() => { if (ready) { const values = draft(); setResultDirty(!!resultRef.current && (!resultInputRef.current || draftFields.some(field => values[field] !== String(resultInputRef.current?.[field])))); persist(); } }} method="post">

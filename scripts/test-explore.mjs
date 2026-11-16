@@ -13,7 +13,7 @@ try {
     const page = await context.newPage();
     const errors = []; page.on("pageerror", error => errors.push(error.message));
     await page.goto(`${base}/explore`);
-    await expect(page.locator(".destination-card")).toHaveCount(31);
+    await expect(page.locator(".destination-card")).toHaveCount(30);
     await page.locator("#place-search").fill("南博");
     await expect(page.locator(".destination-card")).toHaveCount(1);
     await expect(page.locator(".destination-card h3")).toHaveText("南京博物院");
@@ -58,9 +58,9 @@ try {
       if (!image.ok || !(image.headers.get("content-type") || "").includes("image/")) throw new Error(`Image failed: ${photo.src}`);
     }
   }
-  for (const id of ["mingwalang", "hongmiao", "sangi-lane", "nanhu"]) {
+  for (const id of ["mingwalang", "hongmiao", "sangi-lane", "nanhu", "yanziji"]) {
     const response = await fetch(`${base}/explore/${id}`);
     if (response.status !== 404) throw new Error(`Removed destination still accessible: ${id}`);
   }
-  console.log("All 31 detail pages and registered images returned successfully; no model calls");
+  console.log("All 30 detail pages and registered images returned successfully; no model calls");
 } finally { await browser.close(); }

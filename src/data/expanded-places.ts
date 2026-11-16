@@ -193,16 +193,6 @@ export const expandedPlaces: Place[] = [
     foodNote: "提前解决正餐或准备适量饮水，不依赖岸边必有餐饮。", nearbyIds: [], sources: [{ title: "南京市水务局 · 鱼嘴江岸", url: "https://shuiwu.nanjing.gov.cn/bmdt/202510/t20251013_5665601.html" }],
   },
 {
-    id: "yanziji", name: "燕子矶", category: "山水风景", region: "幕燕江岸", image: "", aliases: ["燕子矶公园", "幕燕"], environment: "outdoor", admission: "ticketed",
-    description: "在矶头与长江岸线之间读历史景观，选一段开放步道，看江也看地形。",
-    themes: ["长江", "江岸", "历史", "山水", "摄影", "慢游", "地形"],
-    history: ["燕子矶与幕燕滨江环境共同构成南京北部的江岸景观。理解这里可以把矶头地形、历史文化线索与今天的公共岸线联系起来，而不是只寻找一张标准机位照片。", "燕子矶景区和周边公共步道并非统一票区，也不一定共用开放时间。计划游览时应明确是进入景区还是在滨江公共空间短走，避免用公共岸线的政策替代景区规则。"],
-    highlights: [{ title: "矶头与江面", detail: "在开放观景位置看地形与江流关系，不跨越护栏。" }, { title: "历史标识", detail: "结合现场介绍理解历史地名与景观，不凭传说补写事实。" }, { title: "滨江短线", detail: "按体力选择一段开放岸线，不默认走遍幕燕地区。" }],
-    walk: ["先确认景区入口、公共岸线和票务边界。", "选择一个观江重点，再按体力走短线。", "预留返回主城的时间，不强行搭配远处江岸。"],
-    practical: { durationMinutes: [90, 150], effort: "适中", bestTime: "天气稳定的白天，风雨时缩短露天停留。", arrival: "明确燕子矶景区还是幕燕公共岸线的具体入口。", ticket: "收费景区与公共滨江空间分开，票务范围按当期公告。", reminder: "部分路段有台阶和临江高差，遵守汛期、封闭与观景规定。" },
-    foodNote: "在实际开放的城市街区安排正餐，沿江活动前备水。", nearbyIds: [], sources: [{ title: "南京市政府 · 幕燕滨江景观", url: "https://www.nanjing.gov.cn/bmdt/202304/t20230423_3895426.html" }],
-  },
-{
   "id": "nanjing-memorial",
   "name": "侵华日军南京大屠杀遇难同胞纪念馆",
   "category": "博物场馆",

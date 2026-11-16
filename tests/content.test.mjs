@@ -13,7 +13,7 @@ const { selectPlanningPlaces, planningRequirements, assertRequiredStops } = load
 const input = { duration: "一日游", budget: 300, interests: "明朝历史", startPoint: "南京南站", date: "2026-11-18", walking: "适中" };
 
 test("所有目的地都有完整图文、官方参考与有效关联，图片可用", () => {
-  assert.equal(places.length, 31);
+  assert.equal(places.length, 30);
   const ids = new Set(places.map(place => place.id));
   assert.equal(ids.size, places.length);
   for (const place of places) {
@@ -66,7 +66,7 @@ test("纯逛吃不会用观光景点代替，远郊不挤入普通市内候选",
 });
 
 test("删除的目的地不再出现在目录或推荐关联中；纪念馆别名可规划", () => {
-  const removed = new Set(["mingwalang", "hongmiao", "sangi-lane", "nanhu"]);
+  const removed = new Set(["mingwalang", "hongmiao", "sangi-lane", "nanhu", "yanziji"]);
   assert.ok(places.every(place => !removed.has(place.id) && place.nearbyIds.every(id => !removed.has(id))));
   const { placeImages } = loadModule("../src/data/place-images.ts");
   assert.ok(places.every(place => placeImages[place.id]?.length > 0));
@@ -102,6 +102,6 @@ test("图库文件、来源与逐图许可完整，明确登记素材缺口", ()
       count++;
     }
   }
-  assert.ok(count >= 120);
+  assert.ok(count >= 118);
   assert.ok(placeImages.mingxiaoling.length >= 8);
 });
