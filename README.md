@@ -52,6 +52,19 @@
 
 需要 **Node.js 22.16 或以上版本**，以及 npm。
 
+下载或克隆项目后，可在项目目录直接运行启动脚本：
+
+| 系统 | 命令 |
+| --- | --- |
+| Windows | 双击 `start.bat`，或在终端运行 `.\start.bat` |
+| Linux / macOS | `sh ./start.sh` |
+
+脚本会检查环境，首次启动创建 `.env.local`、安装缺失依赖，然后构建并启动生产服务。已有配置会保留；在 `.env.local` 填入 `AI_API_KEY` 可启用模型生成。默认端口为 `3000`，监听全部网卡，按 `Ctrl+C` 停止。
+
+可通过环境变量 `JINLING_PORT` 指定其他端口，例如 `JINLING_PORT=3001 sh ./start.sh`；PowerShell 使用 `$env:JINLING_PORT='3001'; .\start.bat`。
+
+也可以手动安装并启动开发服务：
+
 ```bash
 git clone https://github.com/tuanliubuxi/jinling-impressions.git
 cd jinling-impressions
