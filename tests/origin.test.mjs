@@ -27,3 +27,15 @@ test("仅显式公开来源允许 HTTPS 穿透代理重写 Host", () => {
     assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin: "https://demo.cpolar.top" })), false);
   } finally { if (original === undefined) delete process.env.PUBLIC_APP_ORIGINS; else process.env.PUBLIC_APP_ORIGINS = original; }
 });
+
+test("cpolar通配符支持刷新后的多级子域，拒绝伪造后缀、非预期协议与端口", () => {
+  const original = process.env.PUBLIC_APP_ORIGINS;
+  try {
+    process.env.PUBLIC_APP_ORIGINS = "https://**.cpolar.top,http://**.cpolar.top";
+    for (const origin of ["https://demo.cpolar.top", "https://demo.cpolar.top", "https://demo.cpolar.top", "http://demo.cpolar.top"]) assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin })), true, origin);
+    for (const origin of ["https://cpolar.top", "https://evilcpolar.top", "https://cpolar.top.evil.example", "https://demo.cpolar.top.evil.example", "https://demo.cpolar.top:444", "https://*.cpolar.top", "https://one.coplar.top"]) assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin })), false, origin);
+    process.env.PUBLIC_APP_ORIGINS = "https://*.cpolar.top";
+    assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin: "https://demo.cpolar.top" })), true);
+    assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin: "https://demo.cpolar.top" })), false);
+  } finally { if (original === undefined) delete process.env.PUBLIC_APP_ORIGINS; else process.env.PUBLIC_APP_ORIGINS = original; }
+});
