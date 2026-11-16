@@ -5,7 +5,8 @@ import { isPlanResult, isRequestId, jobLifetimeMs, type SavedTask } from "@/lib/
 export const plannerSessionKey = "jinling-planner-v2";
 export const draftFields = ["duration", "date", "startPoint", "budget", "walking", "interests"] as const;
 export type PlannerDraft = Record<typeof draftFields[number], string>;
-export type PlannerSession = { version: 2; savedAt: number; draft: PlannerDraft; task?: SavedTask; retryTask?: SavedTask; result?: PlanResult; resultInput?: PlanRequest };
+export type PlanVersion = { requestId: string; input: PlanRequest; result: PlanResult; completedAt: number };
+export type PlannerSession = { version: 2; savedAt: number; draft: PlannerDraft; task?: SavedTask; retryTask?: SavedTask; result?: PlanResult; resultInput?: PlanRequest; history?: PlanVersion[] };
 type Storage = { getItem(key: string): string | null; setItem(key: string, value: string): void; removeItem(key: string): void };
 
 export function readPlannerSession(storage: Storage, now = Date.now()): PlannerSession | undefined {
@@ -20,7 +21,11 @@ export function readPlannerSession(storage: Storage, now = Date.now()): PlannerS
     }
     let resultInput: PlanRequest | undefined;
     try { if (value.resultInput) resultInput = parsePlanRequest(value.resultInput); } catch { /* 保留合法旧结果，不伪造其生成条件。 */ }
-    return { version: 2, savedAt: value.savedAt, draft: value.draft, task: task(value.task), retryTask: task(value.retryTask), result: isPlanResult(value.result) ? value.result : undefined, resultInput };
+    const history: PlanVersion[] = [];
+    for (const item of Array.isArray(value.history) ? value.history.slice(0, 5) : []) {
+      try { if (isRequestId(item.requestId) && isPlanResult(item.result) && typeof item.completedAt === "number" && now - item.completedAt < jobLifetimeMs) history.push({ requestId: item.requestId, input: parsePlanRequest(item.input), result: item.result, completedAt: item.completedAt }); } catch { /* 单条损坏不丢弃其他版本。 */ }
+    }
+    return { version: 2, savedAt: value.savedAt, draft: value.draft, task: task(value.task), retryTask: task(value.retryTask), result: isPlanResult(value.result) ? value.result : undefined, resultInput, history };
   } catch { return undefined; }
 }
 

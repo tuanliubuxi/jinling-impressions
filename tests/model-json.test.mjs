@@ -16,3 +16,9 @@ test("允许完整字段缺少外层闭合符，但不补全断句和缺失字�
   assert.deepEqual(parseModelJSON('{"title":"[]不是闭合符"}'), { title: "[]不是闭合符" });
   assert.equal(parseModelJSON('{"title":"完整标题"').days, undefined);
 });
+
+test("仅补全根days数组在全局字段前遗漏的闭合符，不改写内容", () => {
+  assert.deepEqual(parseModelJSON('{"days":[{"day":1,"stops":[]},"budgetAdvice":["a","b"],"tips":[]}'), { days: [{ day: 1, stops: [] }], budgetAdvice: ["a", "b"], tips: [] });
+  assert.equal(parseModelJSON('{"summary":"},\\\"budgetAdvice\\\":不是结构","days":[{"day":1}],"budgetAdvice":["a","b"],"tips":[]}').summary, '},"budgetAdvice":不是结构');
+  assert.throws(() => parseModelJSON('{"days":[{"day":1},"unknown":[1]}'));
+});

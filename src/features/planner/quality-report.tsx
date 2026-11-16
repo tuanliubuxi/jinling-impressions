@@ -1,0 +1,5 @@
+import type { PlanResult } from "@/lib/plan-contract";
+export function QualityReport({ quality }: { quality?: PlanResult["quality"] }) {
+  if (!quality) return null;
+  return <section className="quality-report"><h3>这条路线的时间与费用参考</h3>{quality.days.map(day => <div key={day.day}><h4>第{day.day}天 · 主要安排约{day.totalReferenceMinutes}分钟</h4><p>游览至少{day.visitMinutes}分钟＋站间转场预留{day.transferReserveMinutes}分钟＋餐休、到达与返程预留{day.mealAndArrivalReserveMinutes}分钟</p>{day.legs.map((leg, index) => <p key={index}>{leg.from} → {leg.to}：预留{leg.minutes[0]}—{leg.minutes[1]}分钟。{leg.mode}。<small>{leg.basis}</small></p>)}</div>)}<p><strong>已知参考门票小计 {quality.knownTicketsYuan}元</strong>；含编辑餐饮与市内交通预留约 {quality.suggestedReserveYuan}元。{quality.budgetTight && "预算偏紧，请调整消费或增加预算。"}</p><details><summary>查看费用范围与官方依据</summary><ul>{quality.ticketItems.map(item => <li key={item.place}>{item.place}：参考{item.ticketYuan}元；{item.ticketScope}。核对于{item.checkedAt}。<a href={item.source.url} target="_blank" rel="noreferrer">官方参考 ↗</a></li>)}</ul></details>{quality.notes.map(note => <p className="field-help" key={note}>{note}</p>)}</section>;
+}

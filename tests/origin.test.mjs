@@ -18,3 +18,12 @@ test("仍拒绝跨站、不同端口、null 来源和伪造转发头", () => {
   }
   assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin: "https://evil.example", "x-forwarded-host": "evil.example" })), false);
 });
+
+test("仅显式公开来源允许 HTTPS 穿透代理重写 Host", () => {
+  const original = process.env.PUBLIC_APP_ORIGINS;
+  try {
+    process.env.PUBLIC_APP_ORIGINS = "https://demo.cpolar.top";
+    assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin: "https://demo.cpolar.top" })), true);
+    assert.equal(isSameSiteRequest(request({ host: "localhost:3000", origin: "https://demo.cpolar.top" })), false);
+  } finally { if (original === undefined) delete process.env.PUBLIC_APP_ORIGINS; else process.env.PUBLIC_APP_ORIGINS = original; }
+});

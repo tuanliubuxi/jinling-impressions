@@ -10,6 +10,7 @@ export type PlanRequest = {
   startPoint: string;
   date: string;
   walking: typeof walkingOptions[number];
+  revision?: { baseRequestId: string; instruction: string };
 };
 
 export type PlanDraft = {
@@ -21,6 +22,10 @@ export type PlanDraft = {
 };
 
 export type PlanResult = PlanDraft & {
+  requestId?: string;
+  request?: PlanRequest;
+  generation?: { model: string; elapsedMs: number; usage?: { promptTokens: number; completionTokens: number; totalTokens: number } };
+  quality?: ReturnType<typeof import("@/lib/plan-quality").assessPlan>;
   warnings: string[];
   sources: { id: string; name: string; description: string; region: string; image: string; durationMinutes: [number, number]; effort: string; arrival: string; ticket: string; reminder: string; references: SourceRef[] }[];
 };
@@ -48,10 +53,16 @@ export function parsePlanRequest(value: unknown): PlanRequest {
   if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== value.date) {
     throw new Error("出游日期不存在。");
   }
+  let revision: PlanRequest["revision"];
+  if (value.revision !== undefined) {
+    if (!record(value.revision) || typeof value.revision.baseRequestId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.revision.baseRequestId) || !text(value.revision.instruction, 300)) throw new Error("修改请求无效，请填写最多300字的调整要求。");
+    revision = { baseRequestId: value.revision.baseRequestId, instruction: value.revision.instruction.trim() };
+  }
   return {
     duration: value.duration as PlanRequest["duration"], budget: value.budget,
     interests: value.interests.trim(), startPoint: value.startPoint.trim(),
     date: value.date, walking: value.walking as PlanRequest["walking"],
+    ...(revision ? { revision } : {}),
   };
 }
 

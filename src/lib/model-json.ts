@@ -6,20 +6,32 @@ export function parseModelJSON(content: string): unknown {
     const stack: string[] = [];
     let quoted = false;
     let escaped = false;
-    for (const char of content) {
+    let repaired = "";
+    let daysArray = false;
+    for (let index = 0; index < content.length; index++) {
+      const char = content[index];
+      // 完整 days 内容后误漏 ]，导致根字段落在数组里；仅补这个确定的闭合符。
+      // 检查引号状态与根层级，绝不替换文本内容中的同名片段。
+      if (!quoted && char === "," && daysArray && stack.length === 2 && stack[1] === "[" && /^,\s*"(?:budgetAdvice|tips)"\s*:/.test(content.slice(index))) {
+        repaired += "]"; stack.pop();
+      }
+      repaired += char;
       if (quoted) {
         if (escaped) escaped = false;
         else if (char === "\\") escaped = true;
         else if (char === '"') quoted = false;
       } else if (char === '"') quoted = true;
-      else if (char === "{" || char === "[") stack.push(char);
+      else if (char === "{" || char === "[") {
+        if (char === "[" && stack.length === 1 && /"days"\s*:\s*$/.test(content.slice(0, index))) daysArray = true;
+        stack.push(char);
+      }
       else if (char === "}" || char === "]") {
         const opening = stack.pop();
         if (opening !== (char === "}" ? "{" : "[")) throw new Error("Mismatched JSON");
       }
     }
-    if (quoted || !stack.length || stack.length > 3) throw new Error("Invalid JSON");
-    parsed = JSON.parse(content + stack.reverse().map(char => char === "{" ? "}" : "]").join(""));
+    if (quoted || stack.length > 3) throw new Error("Invalid JSON");
+    parsed = JSON.parse(repaired + stack.reverse().map(char => char === "{" ? "}" : "]").join(""));
   }
   // 部分响应将全局建议挂在最后一天中；仅搬移已存在的完整数组，不生成默认值。
   if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {

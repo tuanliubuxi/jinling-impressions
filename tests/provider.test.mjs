@@ -2,12 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
+import { loadModule as loadDependency } from "./load-module.mjs";
 
 function loadModule(path, imports = {}) {
   const source = readFileSync(new URL(path, import.meta.url), "utf8");
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const module = { exports: {} };
   new Function("require", "module", "exports", code)(name => {
+    if (!(name in imports) && name.startsWith("@/")) return loadDependency(`../src/${name.slice(2)}.ts`);
     assert.ok(name in imports, `Unexpected import ${name}`);
     return imports[name];
   }, module, module.exports);
@@ -20,19 +22,35 @@ const { generatePlan } = loadModule("../src/lib/deepseek.server.ts", {
   "@/lib/planning-context": loadModule("../src/lib/planning-context.ts"),
   "@/data/city-guide": loadModule("../src/data/city-guide.ts"),
   "@/lib/model-json": loadModule("../src/lib/model-json.ts"),
-  "@/lib/ai-config.server": { getAIConfig: () => ({ endpoint: "https://api.deepseek.com/chat/completions", model: "test-model", apiKey: "test-key-only" }) },
+  "@/lib/ai-config.server": { getAIConfig: () => ({ endpoint: "https://api.deepseek.com/v1/chat/completions", model: "test-model", apiKey: "test-key-only" }) },
   "@/lib/plan-contract": contract,
 });
 const input = { duration: "一日游", budget: 300, interests: "文化", startPoint: "车站", date: "2026-11-18", walking: "少走路" };
 const draft = { title: "建议", summary: "待核实", days: [{ day: 1, theme: "文化主题", meal: "同片区用餐", stops: [{ placeId: "a", period: "下午", reason: "文化", activities: ["观察石刻", "沿步道短线游览"], transition: "先选入口" }] }], tips: [], budgetAdvice: ["先为正餐留预算", "门票另核实"] };
-const success = (content, finish_reason = "stop") => Response.json({ choices: [{ finish_reason, message: { content } }] });
+const success = (content, finish_reason = "stop") => {
+  let args = content;
+  try {
+    const root = JSON.parse(content);
+    const flat = { title: root.title, summary: root.summary };
+    for (let i = 1; i <= 3; i++) { flat[`budget${i}`] = root.budgetAdvice?.[i - 1] || root.budgetAdvice?.[0]; flat[`tip${i}`] = root.tips?.[i - 1] || "行前核实"; }
+    if (Array.isArray(root.days)) root.days.forEach((day, i) => {
+      const d = i + 1; flat[`d${d}_theme`] = day.theme; flat[`d${d}_meal`] = day.meal;
+      for (let s = 1; s <= 3; s++) flat[`d${d}_s${s}_include`] = false;
+      (day.stops || []).forEach((stop, j) => { const prefix = `d${d}_s${j + 1}_`; flat[`${prefix}include`] = true; for (const key of ["placeId", "period", "reason", "transition"]) flat[`${prefix}${key}`] = stop[key]; flat[`${prefix}activity1`] = stop.activities?.[0]; flat[`${prefix}activity2`] = stop.activities?.[1]; });
+    });
+    args = JSON.stringify(flat);
+  } catch {}
+  return Response.json({ usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 }, choices: [{ finish_reason: finish_reason === "stop" ? "tool_calls" : finish_reason, message: { tool_calls: [{ type: "function", function: { name: "submit_itinerary", arguments: args } }] } }] });
+};
 
 test("模型请求约束、固定风险提醒及来源来自服务端资料", async () => {
   const original = globalThis.fetch;
   try {
     globalThis.fetch = async (_url, options) => {
+      assert.equal(_url, "https://api.deepseek.com/beta/chat/completions");
       const body = JSON.parse(options.body);
-      assert.equal(body.response_format.type, "json_object");
+      assert.equal(body.tools[0].function.strict, true);
+      assert.equal(body.tool_choice.function.name, "submit_itinerary");
       assert.equal(body.thinking.type, "disabled");
       assert.equal(body.stream, false);
       assert.ok(JSON.parse(body.messages[1].content).places[0].highlights.length > 0);

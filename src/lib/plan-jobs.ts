@@ -4,6 +4,7 @@ export type PlanJob = {
   version: 1; requestId: string; inputHash: string; createdAt: number;
   status: "pending" | "completed" | "failed";
   result?: PlanResult;
+  generation?: PlanResult["generation"];
   error?: { code: string; message: string; status: number };
 };
 export type JobRepository = { read(id: string): Promise<PlanJob | undefined>; write(job: PlanJob): Promise<void>; prune(before: number): Promise<void> };
@@ -20,8 +21,8 @@ export class PlanJobs {
   private busy = 0;
   private recent: number[] = [];
   private lastPrune = 0;
-  constructor(private repository: JobRepository, private generate: (input: PlanRequest, signal: AbortSignal) => Promise<PlanResult>, private now = Date.now) {}
-  useGenerator(generate: (input: PlanRequest, signal: AbortSignal) => Promise<PlanResult>) { this.generate = generate; }
+  constructor(private repository: JobRepository, private generate: (input: PlanRequest, signal: AbortSignal, base?: PlanResult) => Promise<PlanResult>, private now = Date.now) {}
+  useGenerator(generate: (input: PlanRequest, signal: AbortSignal, base?: PlanResult) => Promise<PlanResult>) { this.generate = generate; }
 
   async get(id: string): Promise<PlanJob | undefined> {
     const reservation = this.reservations.get(id);
@@ -29,13 +30,13 @@ export class PlanJobs {
     return this.existing(id);
   }
 
-  async submit(id: string, inputHash: string, input: PlanRequest) {
+  async submit(id: string, inputHash: string, input: PlanRequest, base?: PlanResult) {
     const reservation = this.reservations.get(id);
     if (reservation) {
       if (reservation.hash !== inputHash) throw new JobError("REQUEST_CONFLICT", "这次任务的条件不一致，请重新整理需求。", 409);
       return reservation.promise;
     }
-    const promise = this.reserve(id, inputHash, input);
+    const promise = this.reserve(id, inputHash, input, base);
     this.reservations.set(id, { hash: inputHash, promise });
     try { return await promise; } finally { this.reservations.delete(id); }
   }
@@ -53,7 +54,7 @@ export class PlanJobs {
     return job;
   }
 
-  private async reserve(id: string, inputHash: string, input: PlanRequest) {
+  private async reserve(id: string, inputHash: string, input: PlanRequest, base?: PlanResult) {
     const previous = await this.existing(id);
     if (previous) {
       if (previous.inputHash !== inputHash) throw new JobError("REQUEST_CONFLICT", "这次任务的条件不一致，请重新整理需求。", 409);
@@ -72,13 +73,16 @@ export class PlanJobs {
     this.recent.push(now);
     const settled = Promise.resolve().then(async () => {
       try {
-        job.result = await this.generate(input, AbortSignal.timeout(90000));
+        job.result = { ...await this.generate(input, AbortSignal.timeout(90000), base), requestId: id, request: input };
         job.status = "completed";
+        job.generation = job.result.generation;
       } catch (error) {
         job.status = "failed";
-        const known = error instanceof Error && "code" in error && "status" in error && typeof error.code === "string" && error.code.startsWith("AI_") || error instanceof Error && "code" in error && ["TIMEOUT", "UPSTREAM_ERROR", "UPSTREAM_UNAVAILABLE", "INVALID_AI_OUTPUT", "UNSATISFIED_INTERESTS", "INSUFFICIENT_SHOPPING_DATA", "CONFLICTING_REQUIREMENTS"].includes(String(error.code));
+        if (error && typeof error === "object" && "generation" in error) job.generation = error.generation as PlanResult["generation"];
+        const known = error instanceof Error && "code" in error && "status" in error && typeof error.code === "string" && (error.code.startsWith("AI_") || ["TIMEOUT", "UPSTREAM_ERROR", "UPSTREAM_UNAVAILABLE", "INVALID_AI_OUTPUT", "UNSATISFIED_INTERESTS", "INSUFFICIENT_SHOPPING_DATA", "CONFLICTING_REQUIREMENTS", "UNSUPPORTED_DESTINATION", "INSUFFICIENT_DATA", "UNSATISFIED_CONSTRAINTS"].includes(error.code));
         job.error = known ? { code: String((error as JobError).code), message: (error as Error).message, status: Number((error as JobError).status) || 502 } : { code: "INTERNAL_ERROR", message: "生成未完成，请稍后主动重试。", status: 500 };
       }
+      console.info(JSON.stringify({ event: "plan_finished", requestId: id, status: job.status, elapsedMs: this.now() - now, code: job.error?.code, generation: job.generation }));
       try { await this.repository.write(job); } catch { console.error("plan_job_result_persist_failed"); }
     }).finally(() => { this.busy--; this.running.delete(id); });
     this.running.set(id, settled);

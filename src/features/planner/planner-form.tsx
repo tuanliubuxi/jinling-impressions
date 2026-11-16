@@ -5,7 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { durations, walkingOptions, parsePlanRequest, type PlanRequest, type PlanResult } from "@/lib/plan-contract";
 import { createRequestId, isPlanResult, jobLifetimeMs, type SavedTask } from "@/lib/plan-job-contract";
-import { draftFields, readPlannerSession, writePlannerSession, type PlannerDraft } from "@/lib/planner-session";
+import { draftFields, readPlannerSession, writePlannerSession, type PlannerDraft, type PlanVersion } from "@/lib/planner-session";
+import { GenerationStats } from "./generation-stats";
+import { QualityReport } from "./quality-report";
 
 class TaskFailure extends Error {
   constructor(message: string, public terminal = false, public canResubmit = false) { super(message); }
@@ -27,6 +29,10 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
   const [task, setTask] = useState<SavedTask | null>(null);
   const [resultInput, setResultInput] = useState<PlanRequest | null>(null);
   const [resultDirty, setResultDirty] = useState(false);
+  const [history, setHistory] = useState<PlanVersion[]>([]);
+  const historyRef = useRef<PlanVersion[]>([]);
+  const [failureStats, setFailureStats] = useState<PlanResult["generation"]>();
+  const [elapsed, setElapsed] = useState(0);
   const controller = useRef<AbortController | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
   const taskRef = useRef<SavedTask | null>(null);
@@ -40,6 +46,7 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     const sameInterest = !initialInterests || saved?.draft.interests === initialInterests;
     const restore = sameInterest || !!saved?.task;
     if (saved && restore && formRef.current) {
+      historyRef.current = saved.history || []; setHistory(historyRef.current);
       for (const name of draftFields) {
         const field = formRef.current.elements.namedItem(name);
         if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) field.value = saved.draft[name];
@@ -59,6 +66,12 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { if (result) resultHeading.current?.focus({ preventScroll: true }); }, [result]);
+  useEffect(() => {
+    if (!loading) return;
+    const start = Date.now(); setElapsed(0);
+    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [loading]);
 
   function draft(): PlannerDraft {
     const values = {} as PlannerDraft;
@@ -71,7 +84,7 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
 
   function persist(): boolean {
     try {
-      return writePlannerSession(window.sessionStorage, { version: 2, savedAt: Date.now(), draft: draft(), task: taskRef.current || undefined, retryTask: retryTaskRef.current || undefined, result: resultRef.current || undefined, resultInput: resultInputRef.current || undefined });
+      return writePlannerSession(window.sessionStorage, { version: 2, savedAt: Date.now(), draft: draft(), task: taskRef.current || undefined, retryTask: retryTaskRef.current || undefined, result: resultRef.current || undefined, resultInput: resultInputRef.current || undefined, history: historyRef.current });
     } catch { return false; }
   }
 
@@ -79,7 +92,10 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     let body;
     try { body = await response.json(); } catch { throw new TaskFailure("暂时无法读取服务器响应，本次任务编号已保留。"); }
     if (!body || typeof body !== "object" || Array.isArray(body)) throw new TaskFailure("服务器返回了无法识别的响应，本次任务编号已保留。");
-    if (!response.ok) throw new TaskFailure(typeof body.message === "string" ? body.message : "服务器暂时不可用，请继续查看本次任务。", body.status === "failed" || [400, 403, 404, 409, 410, 422].includes(response.status), [403, 404].includes(response.status));
+    if (!response.ok) {
+      if (body.generation && typeof body.generation.model === "string" && Number.isFinite(body.generation.elapsedMs)) setFailureStats({ model: body.generation.model, elapsedMs: body.generation.elapsedMs, ...([body.generation.usage?.promptTokens, body.generation.usage?.completionTokens, body.generation.usage?.totalTokens].every(Number.isInteger) ? { usage: body.generation.usage } : {}) });
+      throw new TaskFailure(typeof body.message === "string" ? body.message : "服务器暂时不可用，请继续查看本次任务。", body.status === "failed" || [400, 403, 404, 409, 410, 422].includes(response.status), [403, 404].includes(response.status));
+    }
     if (body.requestId !== requestId) throw new TaskFailure("响应与本次任务不一致，请继续查看，未创建新任务。");
     if (response.status === 202 && body.status === "pending") return null;
     if (body.status !== "completed" || !isPlanResult(body.result)) throw new TaskFailure("结果格式暂时无法显示，本次任务编号已保留，未重新生成。");
@@ -90,7 +106,7 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     if (controller.current && !controller.current.signal.aborted) return;
     const active = new AbortController();
     controller.current = active;
-    taskRef.current = saved; setTask(saved); setLoading(true); setError("");
+    taskRef.current = saved; setTask(saved); setLoading(true); setError(""); setFailureStats(undefined);
     const timeout = setTimeout(() => active.abort(), 110000);
     try {
       // 恢复与“继续查看”只做 GET，不能把过去被拒绝、尚未创建的请求自动变成计费生成。
@@ -103,6 +119,8 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
       if (controller.current !== active || active.signal.aborted) return;
       resultRef.current = completed; setResult(completed);
       resultInputRef.current = saved.input; setResultInput(saved.input); setResultDirty(false); retryTaskRef.current = null;
+      historyRef.current = [{ requestId: saved.requestId, input: saved.input, result: completed, completedAt: Date.now() }, ...historyRef.current.filter(version => version.requestId !== saved.requestId)].slice(0, 5);
+      setHistory(historyRef.current);
       taskRef.current = null; setTask(null); persist();
     } catch (cause) {
       if (controller.current !== active) return;
@@ -122,9 +140,13 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
     event.preventDefault();
     if (!ready || controller.current) return;
     if (taskRef.current) { void runTask(taskRef.current); return; }
+    try { const values = draft(); beginTask(parsePlanRequest({ ...values, budget: Number(values.budget) })); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "请检查输入，尚未调用模型。"); }
+  }
+
+  function beginTask(input: PlanRequest) {
+    if (controller.current || taskRef.current) return;
     try {
-      const values = draft();
-      const input = parsePlanRequest({ ...values, budget: Number(values.budget) });
       const retry = retryTaskRef.current;
       const nextTask = retry && Date.now() - retry.startedAt < jobLifetimeMs && JSON.stringify(retry.input) === JSON.stringify(input) ? retry : { requestId: createRequestId(), input, startedAt: Date.now() };
       const previousResult = resultRef.current;
@@ -138,6 +160,29 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
       }
       setResult(null); setResultInput(null); setResultDirty(false); void runTask(nextTask, true);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "请检查输入和浏览器兼容性，尚未调用模型。"); }
+  }
+
+  function showVersion(version: PlanVersion) {
+    if (controller.current || taskRef.current) return;
+    resultRef.current = version.result; resultInputRef.current = version.input;
+    setResult(version.result); setResultInput(version.input); setResultDirty(false); setError(""); setFailureStats(undefined);
+    for (const name of draftFields) {
+      const field = formRef.current?.elements.namedItem(name);
+      if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) field.value = String(version.input[name]);
+    }
+    persist();
+  }
+
+  function revise(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const current = resultInputRef.current; const id = resultRef.current?.requestId;
+    if (!current || !id || controller.current || taskRef.current) return;
+    const fields = new FormData(event.currentTarget);
+    try {
+      const input = parsePlanRequest({ ...current, interests: [current.interests, current.revision?.instruction].filter(Boolean).join("。"), duration: fields.get("revisionDuration"), budget: Number(fields.get("revisionBudget")), walking: fields.get("revisionWalking"), revision: { baseRequestId: id, instruction: fields.get("instruction") } });
+      for (const name of draftFields) { const field = formRef.current?.elements.namedItem(name); if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) field.value = String(input[name]); }
+      beginTask(input);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "修改要求无效，尚未调用模型。"); }
   }
   return <>
     <div className="card form-card"><p className="notice">从明孝陵、明城墙到秦淮街巷，围绕你的兴趣选择路线。还没想好？先<Link href="/explore">探索金陵的 10 处目的地 ↗</Link></p>
@@ -157,13 +202,18 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
       {loading && <button className="text-button" type="button" onClick={() => controller.current?.abort()}>暂停等待（后台继续，结果可恢复）</button>}
       {task && !loading && <button className="button" type="button" onClick={() => void runTask(task)}>继续查看这次结果</button>}
     </form>
-    <p role="status" aria-live="polite" className="result">{loading ? "正在结合你的偏好与现有地点资料生成建议，请稍候…" : ""}</p>
+    <p role="status" aria-live="polite" className="result">{loading ? `正在结合你的偏好与现有地点资料生成建议，已等待 ${elapsed} 秒；请勿重复提交。` : ""}</p>
     {error && <p className="error-message" role="alert">{error} {task ? "请继续查看已有任务，无需重新生成。" : "输入已保留；点击生成才会主动创建新任务。"}</p>}
+    <GenerationStats generation={failureStats} />
+    {history.length > 0 && <nav className="version-history" aria-label="已保存的行程版本"><strong>最近的行程版本 · 切换不调用模型</strong>{history.map((version, index) => <button type="button" className="text-button" disabled={loading || !!task} key={version.requestId} onClick={() => showVersion(version)}>{index === 0 ? "最新版本" : `先前版本 ${history.length - index}`} · {version.result.title}</button>)}<small>当前标签页最多保留5个版本，24小时有效。</small></nav>}
     </div>
     {result && <section className="plan-result" aria-labelledby="plan-title">
       <span className="eyebrow">YOUR NANJING FIELD GUIDE</span><h2 id="plan-title" tabIndex={-1} ref={resultHeading}>{result.title}</h2><p className="plan-overview">{result.summary}</p>
       {resultInput ? <p className="notice result-input">这份攻略依据：{resultInput.date} · {resultInput.duration} · 兴趣“{resultInput.interests}”</p> : <p className="notice result-input">这是之前保存的结果，旧版本未记录它的生成条件。</p>}
       {resultDirty && <p className="notice" role="status">你已修改条件或正在查看旧结果。下面的攻略尚未按当前表单重新生成，不会自动调用模型。</p>}
+      {resultInput?.revision && <p className="notice">这次调整：{resultInput.revision.instruction}</p>}
+      <GenerationStats generation={result.generation} />
+      <QualityReport quality={result.quality} />
       {result.days.map(day => <section className="plan-day" key={day.day}><div className="plan-day-heading"><span>DAY {String(day.day).padStart(2, "0")}</span><div><h3>第 {day.day} 天</h3><p>{day.theme}</p></div></div><ol className="plan-stops">{day.stops.map(stop => {
         const place = result.sources.find(source => source.id === stop.placeId);
         return <li className={`card itinerary-stop${stop.optional ? " optional-stop" : ""}`} key={stop.placeId}>
@@ -178,6 +228,7 @@ export function PlannerForm({ initialInterests = "" }: { initialInterests?: stri
       {result.tips.length > 0 && <div className="plan-tips"><h3>给你的建议</h3><ul>{result.tips.map((tip, index) => <li key={index}>{tip}</li>)}</ul></div>}
       <aside className="notice plan-checklist" aria-label="出行前待确认的信息"><strong>出发前，再确认三件事</strong><ul>{result.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></aside>
       <details className="plan-sources"><summary>查看这份攻略的资料依据</summary><p>根据本地目的地资料检索生成；历史参考可追溯，玩法与时长为编辑建议，非实时运营信息。</p>{result.sources.map(source => <div key={source.id}><p><Link href={`/explore/${source.id}`}><strong>{source.name} ↗</strong></Link>：{source.description}</p><ul>{source.references.map(reference => <li key={reference.url}><a href={reference.url} target="_blank" rel="noreferrer">{reference.title} ↗</a></li>)}</ul></div>)}</details>
+      {result.requestId && resultInput && <form className="revision-form card" onSubmit={revise} key={result.requestId}><h3>在这份行程上继续调整</h3><p>保留未要求改变的安排，生成一个新版本；原版本可随时查看。修改会调用一次模型，不会自动重试。</p><fieldset disabled={loading || !!task}><label htmlFor="instruction">调整要求</label><textarea id="instruction" name="instruction" maxLength={300} required rows={3} placeholder="例如：去掉城墙，增加购物；其他安排尽量保留" /><label htmlFor="revisionDuration">新的游玩时长</label><select id="revisionDuration" name="revisionDuration" defaultValue={resultInput.duration}>{durations.map(value => <option key={value}>{value}</option>)}</select><label htmlFor="revisionBudget">新的每人预算（元）</label><input id="revisionBudget" name="revisionBudget" type="number" min="0" max="100000" step="1" required defaultValue={resultInput.budget} /><label htmlFor="revisionWalking">新的步行偏好</label><select id="revisionWalking" name="revisionWalking" defaultValue={resultInput.walking}>{walkingOptions.map(value => <option key={value}>{value}</option>)}</select><button className="button" type="submit">按要求修改（调用一次模型）</button></fieldset></form>}
     </section>}
   </>;
 }

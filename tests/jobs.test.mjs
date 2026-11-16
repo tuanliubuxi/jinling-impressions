@@ -15,6 +15,16 @@ function repository() {
 const input = { duration: "一日游", date: "2026-11-18", budget: 300, interests: "明代", walking: "适中", startPoint: "车站" };
 const result = { title: "测试结果" };
 
+test("修改上下文只传给一个新任务，失败用量随任务保存且重读不生成", async () => {
+  let calls = 0; const disk = repository(); const base = { title: "上一版" };
+  const generation = { model: "mock", elapsedMs: 123, usage: { promptTokens: 4, completionTokens: 3, totalTokens: 7 } };
+  const jobs = new PlanJobs(disk, async (_input, _signal, previous) => { calls++; assert.deepEqual(previous, base); const error = new Error("质量校验失败"); Object.assign(error, { code: "UNSATISFIED_CONSTRAINTS", status: 502, generation }); throw error; });
+  const created = await jobs.submit("revision", "hash", input, base); await created.settled;
+  assert.equal(created.job.error.code, "UNSATISFIED_CONSTRAINTS");
+  assert.deepEqual(created.job.generation, generation);
+  await jobs.submit("revision", "hash", input, base); assert.equal(calls, 1);
+});
+
 test("同编号的并发请求、断线重连、结果重取只生成一次", async () => {
   let calls = 0, resolve;
   const jobs = new PlanJobs(repository(), async () => { calls++; return new Promise(done => { resolve = done; }); });
@@ -25,7 +35,7 @@ test("同编号的并发请求、断线重连、结果重取只生成一次", as
   assert.equal((await jobs.get("same")).status, "pending");
   resolve(result); await a.settled;
   const cached = await jobs.submit("same", "hash", input);
-  assert.deepEqual(cached.job.result, result);
+  assert.deepEqual(cached.job.result, { ...result, requestId: "same", request: input });
   assert.equal(calls, 1);
 });
 

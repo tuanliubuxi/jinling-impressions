@@ -206,4 +206,32 @@ try {
     console.log("PASS changed interests: old result labeled, new submission uses current shopping input");
     await ctx.close();
   }
+  {
+    const ctx = await context(); let posts = 0, originalId;
+    const stats = { model: "simulated-model", elapsedMs: 2300, usage: { promptTokens: 1000, completionTokens: 300, totalTokens: 1300 } };
+    const quality = { days: [{ day: 1, visitMinutes: 120, transferReserveMinutes: 0, mealAndArrivalReserveMinutes: 120, totalReferenceMinutes: 240, legs: [] }], knownTicketsYuan: 70, suggestedReserveYuan: 140, budgetTight: false, ticketItems: [{ place: "明孝陵", ticketYuan: 70, ticketScope: "成人普通参考", checkedAt: "2026-11-16", source: { title: "官方参考", url: "https://zschina.nanjing.gov.cn/" } }], notes: ["编辑预留，非实测或实时导航。"] };
+    await ctx.route("**/api/plan**", route => {
+      expect(route.request().method()).toBe("POST"); posts++;
+      const id = route.request().headers()["idempotency-key"]; const input = route.request().postDataJSON();
+      if (posts === 1) originalId = id;
+      else { expect(input.revision.baseRequestId).toBe(originalId); expect(input.revision.instruction).toBe("减少步行，其他保留"); expect(input.walking).toBe("少走路"); expect(input.budget).toBe(200); }
+      const result = { ...fixture, requestId: id, request: input, generation: stats, quality, title: posts === 1 ? "原始版本" : "调整后的版本" };
+      return route.fulfill({ status: 200, json: { status: "completed", requestId: id, result } });
+    });
+    const page = await ctx.newPage(); await page.goto(`${base}/planner`); await fill(page); await page.locator(".form-card button[type=submit]").tap();
+    await expect(page.locator("#plan-title")).toHaveText("原始版本");
+    await expect(page.locator(".generation-stats")).toContainText("1,300");
+    await expect(page.locator(".quality-report")).toContainText("已知参考门票小计 70元");
+    await page.locator("#instruction").fill("减少步行，其他保留");
+    await page.locator("#revisionWalking").selectOption("少走路"); await page.locator("#revisionBudget").fill("200");
+    await page.locator(".revision-form button[type=submit]").tap(); await expect(page.locator("#plan-title")).toHaveText("调整后的版本");
+    expect(posts).toBe(2);
+    await page.getByRole("navigation", { name: "已保存的行程版本" }).getByRole("button", { name: /原始版本/ }).tap();
+    await expect(page.locator("#plan-title")).toHaveText("原始版本"); expect(posts).toBe(2);
+    await page.reload(); await expect(page.locator("#plan-title")).toHaveText("原始版本"); expect(posts).toBe(2);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: ".local/mobile-revision.png", fullPage: true });
+    console.log("PASS revision and usage: one POST per change, old versions survive reload and switching is free");
+    await ctx.close();
+  }
 } finally { await browser.close(); }

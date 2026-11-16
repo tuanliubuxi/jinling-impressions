@@ -2,13 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import ts from "typescript";
+import { loadModule } from "./load-module.mjs";
 
 async function load(path) {
   const code = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
   return import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
 }
 const { places } = await load("../src/data/places.ts");
-const { selectPlanningPlaces, planningRequirements, assertRequiredStops } = await load("../src/lib/planning-context.ts");
+const { selectPlanningPlaces, planningRequirements, assertRequiredStops } = loadModule("../src/lib/planning-context.ts");
 const input = { duration: "一日游", budget: 300, interests: "明朝历史", startPoint: "南京南站", date: "2026-11-18", walking: "适中" };
 
 test("所有目的地都有完整图文、官方参考与有效关联，图片可用", () => {
