@@ -1,0 +1,31 @@
+{
+  "name": "jinling-impressions",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "test:smoke": "node scripts/smoke-plan.mjs",
+    "test:mobile": "node scripts/test-mobile.mjs",
+    "test:eval": "node scripts/evaluate-plans.mjs",
+    "preview:capture": "node scripts/capture-preview.mjs"
+  },
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
